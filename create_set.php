@@ -7,6 +7,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $set_title = $_POST["set_title"];
     $set_desc  = $_POST["set_desc"];
+    $category  = $_POST["category"]; // Kategori al
     $user_id   = $_SESSION["user_id"];
 
     // --- EN AZ 2 KART ZORUNLULUĞU ---
@@ -28,8 +29,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
     // 1) Set kaydı
-    $sql = "INSERT INTO sets (user_id, title, description)
-            VALUES ('$user_id', '$set_title', '$set_desc')";
+    $sql = "INSERT INTO sets (user_id, title, description, category)
+            VALUES ('$user_id', '$set_title', '$set_desc', '$category')";
     $conn->query($sql);
 
     $set_id = $conn->insert_id; // yeni oluşan set_id
@@ -40,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if (trim($term_text) == "" && trim($defination_text) == "") continue;
 
-        $sql = "INSERT INTO cards (set_id, term, defination)
+        $sql = "INSERT INTO cards (set_id, front_text, back_text)
                 VALUES ('$set_id', '$term_text', '$defination_text')";
         $conn->query($sql);
     }
@@ -127,6 +128,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <label>Açıklama (isteğe bağlı):</label><br>
     <textarea name="set_desc"></textarea><br><br>
+
+    <label>Kategori:</label><br>
+    <select name="category">
+        <option value="Genel">Genel</option>
+        <option value="Matematik">Matematik</option>
+        <option value="Fen Bilimleri">Fen Bilimleri</option>
+        <option value="Yabancı Dil">Yabancı Dil</option>
+        <option value="Tarih">Tarih</option>
+        <option value="Edebiyat">Edebiyat</option>
+        <option value="Yazılım">Yazılım</option>
+        <option value="Diğer">Diğer</option>
+    </select><br><br>
 
     <h3>Kartlar</h3>
 
