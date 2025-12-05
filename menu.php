@@ -3,33 +3,42 @@ session_start();
 ?>
 
 <style>
-    nav {
-        background: #333;
-        padding: 10px;
+    /* Navigasyon barını esnek kutu (flexbox) yapıyoruz */
+    .navbar {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        display: flex;
+        justify-content: space-between; /* İçindeki iki grubu (sol ve sağ) iki uca yaslar */
+        align-items: center; /* Dikey olarak ortalar */
+        padding: 10px 20px; /* Biraz boşluk verelim */
+        background-color: #333; /* Örnek arka plan rengi */
     }
-    nav a {
+
+    /* Linklerin görünümü (Opsiyonel süsleme) */
+    .navbar a {
         color: white;
-        margin-right: 15px;
         text-decoration: none;
-        font-weight: bold;
+        margin: 0 10px; /* Linkler birbirine yapışmasın */
     }
-    nav a:hover {
+    .navbar a:hover {
         text-decoration: underline;
     }
 </style>
 
-<nav>
+<nav class="navbar">
+    <div class="nav-links">
+        <a href="index.php">Ana Sayfa</a>
+        <a href="sets.php">Tüm Setler</a>
+    </div>
 
-    <a href="index.php">Ana Sayfa</a>
-
-    <a href="sets.php">Tüm Setler</a>
-
-    <?php if (isset($_SESSION["user_id"])): ?>
-        <a href="create_set.php">Set Oluştur</a>
-        <a href="logout.php">Çıkış Yap</a>
-    <?php else: ?>
-        <a href="login.php">Giriş Yap</a>
-        <a href="register.php">Kayıt Ol</a>
-    <?php endif; ?>
-
+    <div class="nav-auth">
+        <?php if (isset($_SESSION["user_id"])): ?>
+            <a href="create_set.php">Set Oluştur</a>
+            <a href="logout.php">Çıkış Yap</a>
+        <?php else: ?>
+            <a href="login.php">Giriş Yap</a>
+            <a href="register.php">Kayıt Ol</a>
+        <?php endif; ?>
+    </div>
 </nav>
