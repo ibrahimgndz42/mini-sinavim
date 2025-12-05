@@ -1,0 +1,31 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
+    height: 100vh;
+}
+/*ana sayfa yazı tarzlar*/
+
+.hero {
+    text-align: center;
+    margin-top: 120px;
+}
+
+.title {
+    font-size: 60px;
+    font-weight: 700;
+}
+
+.subtitle {
+    font-size: 22px;
+    color: #555;
+    margin-top: 10px;
+    opacity: 0;
+    animation: fade 1s ease forwards;
+}
+
+@keyframes fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+/*-------------------------*/

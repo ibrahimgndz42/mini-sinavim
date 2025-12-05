@@ -1,10 +1,6 @@
-<?php
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit;
-}
-?>
+<?php include "menu.php"; ?>
+
+
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -12,12 +8,21 @@ if (!isset($_SESSION['user_id'])) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Welcome Page</title>
         <link rel="stylesheet" type="text/css"  href="style.css">
-        <script src="script.js"></script>
+ 
 </head>
 <body>
-    <h1>MINI SINAVIM</h1>
+    <center>
+
+    <div class="hero">
+        <h1 class="title">Mini Sınavım</h1>
+        <p id="changingText" class="subtitle"></p>
+    </div>
+
+    </center>
+    
 
 
+       <script src="script.js"></script>
 </body>
 
 
