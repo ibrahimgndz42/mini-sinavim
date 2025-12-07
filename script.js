@@ -1,9 +1,8 @@
-//ana sayfada metinlerin kayması ve animasyonu
 const texts = [
     "Kendi çalışma setlerini oluştur.",
     "Öğrenmeni hızlandır.",
     "Bilgini test et.",
-    "Başarıya hazırlan."  
+    "Başarıya hazırlan."
 ];
 
 let index = 0;
@@ -20,4 +19,4 @@ function changeText() {
 }
 
 changeText();
-setInterval(changeText, 10000);
+setInterval(changeText, 3000);
