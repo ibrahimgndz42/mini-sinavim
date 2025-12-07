@@ -2,7 +2,7 @@
 include "session_check.php";
 include "connectDB.php";
 
-// Hata raporlamayı açalım (Geliştirme süreci için)
+// Hata raporlamayı geliştirme aşamasında açık tutalım
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -15,11 +15,8 @@ $set_id = intval($_GET['id']);
 $user_id = $_SESSION['user_id'];
 
 // ---------------------------------------------------------
-// 1. SET BİLGİLERİNİ VE KATEGORİ İSMİNİ ÇEKME
+// 1. SET BİLGİLERİNİ ÇEKME
 // ---------------------------------------------------------
-// Kısaltmalar (s, c) kaldırıldı. Tablo adları uzun yazıldı.
-// HATA DÜZELTME: 'categories.id' yerine 'categories.category_id' deniyoruz.
-// Eğer tablonuzda sütun adı 'id' ise aşağıdaki 'category_id' yazan yeri 'id' yapın.
 $sql = "SELECT sets.*, categories.name AS category_name 
         FROM sets 
         LEFT JOIN categories ON sets.category_id = categories.category_id 
@@ -28,8 +25,7 @@ $sql = "SELECT sets.*, categories.name AS category_name
 $result = $conn->query($sql);
 
 if (!$result) {
-    // SQL hatası varsa ekrana net bir şekilde basalım
-    die("Sorgu Hatası: " . $conn->error . " <br> (Lütfen categories tablosundaki ID sütununun adının 'category_id' mi yoksa 'id' mi olduğunu kontrol edin.)");
+    die("Sorgu Hatası: " . $conn->error);
 }
 
 if ($result->num_rows == 0) {
@@ -39,6 +35,7 @@ if ($result->num_rows == 0) {
 
 $set = $result->fetch_assoc();
 
+// Yetki Kontrolü
 if ($set['user_id'] != $user_id) {
     echo "Bu seti düzenleme yetkiniz yok.";
     exit;
@@ -55,16 +52,10 @@ while($row = $result_cards->fetch_assoc()) {
 }
 
 // ---------------------------------------------------------
-// 3. DROPDOWN İÇİN TÜM KATEGORİLERİ ÇEKME
+// 3. KATEGORİLERİ ÇEKME
 // ---------------------------------------------------------
-// Burada da kısaltma kullanmadan çekiyoruz
 $sql_cats = "SELECT * FROM categories ORDER BY name ASC"; 
 $result_cats = $conn->query($sql_cats);
-
-if (!$result_cats) {
-    die("Kategori Sorgu Hatası: " . $conn->error);
-}
-
 $categories = [];
 while($row = $result_cats->fetch_assoc()) {
     $categories[] = $row;
@@ -76,11 +67,9 @@ while($row = $result_cats->fetch_assoc()) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $set_title = $conn->real_escape_string($_POST["set_title"]);
     $set_desc  = $conn->real_escape_string($_POST["set_desc"]);
-    
-    // Formdan gelen kategori ID'sini alıyoruz
     $category_id = intval($_POST["category_id"]); 
 
-    // --- EN AZ 2 KART ZORUNLULUĞU ---
+    // Kart Sayısı Kontrolü
     $validCardCount = 0;
     if (isset($_POST["term"])) {
         foreach ($_POST["term"] as $key => $term_text) {
@@ -99,7 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         if ($conn->query($sql_update) === TRUE) {
             
-            // B) Kartları güncelle (Sil ve Ekle)
+            // B) Kartları güncelle (Önce hepsini sil, sonra temiz olanları ekle)
             $conn->query("DELETE FROM cards WHERE set_id=$set_id");
 
             foreach ($_POST["term"] as $key => $term_text) {
@@ -127,17 +116,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <meta charset="UTF-8">
 <title>Seti Düzenle</title>
 <style>
-    /* CSS kodlarınız aynen kalıyor */
     body {
         margin: 0;
         font-family: 'Inter', sans-serif;
         background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
         min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        padding-top: 40px;
-        padding-bottom: 40px;
+        /* DÜZELTME: Flex yapısı kaldırıldı, böylece menü yukarıda düzgün duracak */
     }
     * { box-sizing: border-box; }
 
@@ -145,6 +129,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         width: 100%;
         max-width: 650px;
         padding: 20px;
+        /* DÜZELTME: Formu ortalamak için margin auto eklendi */
+        margin: 40px auto;
     }
 
     .glass-card {
@@ -213,6 +199,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         transition: .2s ease;
     }
 
+    /* Etiket animasyonları */
     .input-wrapper input:focus + label,
     .input-wrapper input:not(:placeholder-shown) + label,
     .input-wrapper textarea:focus + label,
@@ -349,6 +336,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 
 <body>
+<?php include "menu.php"; ?>
 
 <div class="create-container">
 <div class="glass-card">
@@ -385,11 +373,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="selected"><?= htmlspecialchars($set['category_name'] ?? 'Kategori Seçiniz') ?></div>
                 <ul class="options">
                     <?php foreach($categories as $cat): ?>
-                        <li data-value="<?= $cat['category_id'] ?? $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></li>
+                        <li data-value="<?= $cat['category_id'] ?>"><?= htmlspecialchars($cat['name']) ?></li>
                     <?php endforeach; ?>
                 </ul>
             </div>
-            <input type="hidden" name="category_id" id="hiddenCategory" value="<?= htmlspecialchars($set['category_id'] ?? '') ?>">
+            <input type="hidden" name="category_id" id="hiddenCategory" value="<?= htmlspecialchars($set['category_id']) ?>">
         </div>
 
         <h3 style="color:white; text-align:center;">Kartlar</h3>
@@ -398,13 +386,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php foreach($cards as $index => $card): ?>
             <div class="card-box">
                 <div class="input-wrapper">
-                    <input type="text" name="term[]" value="<?= htmlspecialchars($card['term'] ?? $card['term'] ?? '') ?>" placeholder=" " required>
+                    <input type="text" name="term[]" value="<?= htmlspecialchars($card['term']) ?>" placeholder=" " required>
                     <label>Ön Yüz</label>
                     <span class="focus-border"></span>
                 </div>
 
                 <div class="input-wrapper">
-                    <input type="text" name="defination[]" value="<?= htmlspecialchars($card['defination'] ?? $card['defination'] ?? '') ?>" placeholder=" " required>
+                    <input type="text" name="defination[]" value="<?= htmlspecialchars($card['defination']) ?>" placeholder=" " required>
                     <label>Arka Yüz</label>
                     <span class="focus-border"></span>
                 </div>
@@ -424,31 +412,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </div></div>
 
 <script>
-// --- Custom Select Logic ---
+// --- Dropdown Mantığı ---
 const categorySelect = document.getElementById("categorySelect");
-const selected = categorySelect.querySelector(".selected");
-const optionsContainer = categorySelect.querySelector(".options");
-const hiddenInput = document.getElementById("hiddenCategory");
+if (categorySelect) {
+    const selected = categorySelect.querySelector(".selected");
+    const optionsContainer = categorySelect.querySelector(".options");
+    const hiddenInput = document.getElementById("hiddenCategory");
 
-selected.addEventListener("click", () => {
-    optionsContainer.style.display = optionsContainer.style.display === "block" ? "none" : "block";
-});
-
-optionsContainer.querySelectorAll("li").forEach(option => {
-    option.addEventListener("click", () => {
-        selected.textContent = option.textContent; 
-        hiddenInput.value = option.dataset.value;  
-        optionsContainer.style.display = "none";
+    selected.addEventListener("click", () => {
+        optionsContainer.style.display = optionsContainer.style.display === "block" ? "none" : "block";
     });
-});
 
-document.addEventListener("click", (e) => {
-    if (!categorySelect.contains(e.target)) {
-        optionsContainer.style.display = "none";
-    }
-});
+    optionsContainer.querySelectorAll("li").forEach(option => {
+        option.addEventListener("click", () => {
+            selected.textContent = option.textContent; 
+            hiddenInput.value = option.dataset.value;  
+            optionsContainer.style.display = "none";
+        });
+    });
 
-// --- Auto Expand Textarea ---
+    document.addEventListener("click", (e) => {
+        if (!categorySelect.contains(e.target)) {
+            optionsContainer.style.display = "none";
+        }
+    });
+}
+
+// --- Textarea Otomatik Genişleme ---
 function autoExpandTextarea(textarea) {
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
@@ -458,7 +448,7 @@ document.querySelectorAll('textarea.auto-expand').forEach(textarea => {
     textarea.addEventListener('input', () => autoExpandTextarea(textarea));
 });
 
-// --- Card Logic ---
+// --- Kart Numaralandırma ve Ekleme ---
 function updateCardNumbers() {
     const cards = document.querySelectorAll("#cardsContainer .card-box");
     cards.forEach((card, index) => {
@@ -491,6 +481,7 @@ function addCard() {
     `;
     container.appendChild(box);
     
+    // Yeni eklenen silme butonuna olay dinleyicisi ekle
     box.querySelector(".delete-btn").addEventListener("click", function() {
         box.remove();
         checkDeletes();
@@ -501,6 +492,7 @@ function addCard() {
     updateCardNumbers();
 }
 
+// Mevcut (veritabanından gelen) kartların silme butonları için dinleyici
 function attachDeleteListeners() {
     const boxes = document.querySelectorAll("#cardsContainer .card-box");
     boxes.forEach(box => {
@@ -515,9 +507,11 @@ function attachDeleteListeners() {
     });
 }
 
+// En az 2 kart kalması kuralı (Sil butonlarını gizler)
 function checkDeletes() {
     const boxes = document.querySelectorAll(".card-box");
     const delBtns = document.querySelectorAll(".delete-btn");
+    // İstersen burada limiti 1 veya 0 yapabilirsin, şimdilik 2 kart kuralı var.
     if(boxes.length <= 2) {
         delBtns.forEach(btn => btn.style.display = "none");
     } else {
@@ -525,7 +519,7 @@ function checkDeletes() {
     }
 }
 
-// Başlatma
+// Sayfa Yüklendiğinde Başlat
 attachDeleteListeners();
 updateCardNumbers();
 checkDeletes();
