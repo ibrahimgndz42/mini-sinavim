@@ -73,7 +73,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_comment_submit'
 
 
 // 2. Kartları çek
-$sql_cards = "SELECT front_text as term, back_text as defination FROM cards WHERE set_id = $set_id";
+$sql_cards = "SELECT term , defination FROM cards WHERE set_id = $set_id";
 $result_cards = $conn->query($sql_cards);
 
 $cards = [];
