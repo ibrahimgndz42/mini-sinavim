@@ -175,6 +175,7 @@ $res_sets = $conn->query($sql_sets);
         }
 
         .set-card {
+            /* Mevcut Stiller */
             background: rgba(255, 255, 255, 0.65);
             border-radius: 16px;
             padding: 20px;
@@ -183,7 +184,10 @@ $res_sets = $conn->query($sql_sets);
             text-decoration: none;
             color: #333;
             border: 1px solid rgba(255,255,255,0.6);
-            display: block;
+            /* DÜZELTME 1: Kartın içeriğini dikey esnek düzene sokar */
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* İçerik ızgarasında düzgün yerleşmesi için */
         }
 
         .set-card:hover {
@@ -209,6 +213,11 @@ $res_sets = $conn->query($sql_sets);
             font-weight: 700;
             margin: 0 0 5px 0;
             color: #2c3e50;
+            /* DÜZELTME 2: Başlığı max 2 satırla sınırlar */
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .set-desc {
@@ -216,6 +225,13 @@ $res_sets = $conn->query($sql_sets);
             color: #666;
             margin-bottom: 10px;
             line-height: 1.4;
+            /* DÜZELTME 3: Açıklamayı max 3 satırla sınırlar ve taşmayı gizler */
+            display: -webkit-box;
+            -webkit-line-clamp: 3; /* Maksimum 3 satır */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1; /* Kart içinde kalan dikey alanı doldurur */
         }
 
         .set-author {
