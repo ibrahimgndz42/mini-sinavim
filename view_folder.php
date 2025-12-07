@@ -1,5 +1,4 @@
 <?php
-session_start();
 include "connectDB.php";
 include "menu.php";
 include "session_check.php";
@@ -42,12 +41,18 @@ if (isset($_GET['remove_set'])) {
 }
 
 // Klasördeki setleri çek
-$sql_sets = "SELECT sets.*, users.username, folder_sets.added_at 
-             FROM folder_sets 
-             JOIN sets ON folder_sets.set_id = sets.set_id 
-             JOIN users ON sets.user_id = users.user_id 
-             WHERE folder_sets.folder_id = $folder_id 
-             ORDER BY folder_sets.added_at DESC";
+$sql_sets = "SELECT 
+                sets.*, 
+                users.username, 
+                folder_sets.added_at,
+                categories.name AS category
+            FROM folder_sets 
+            JOIN sets ON folder_sets.set_id = sets.set_id 
+            JOIN users ON sets.user_id = users.user_id 
+            LEFT JOIN categories ON sets.category_id = categories.category_id
+            WHERE folder_sets.folder_id = $folder_id 
+            ORDER BY folder_sets.added_at DESC";
+
 $res_sets = $conn->query($sql_sets);
 ?>
 

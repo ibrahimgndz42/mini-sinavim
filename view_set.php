@@ -1,5 +1,5 @@
 <?php
-session_start();
+include "session_check.php";
 include "connectDB.php";
 include "menu.php";
 
@@ -11,10 +11,12 @@ if (!isset($_GET['id'])) {
 $set_id = intval($_GET['id']);
 
 // 1. Set bilgilerini çek
-$sql_set = "SELECT sets.*, users.username, users.user_id as owner_id 
+$sql_set = "SELECT sets.*, users.username, users.user_id as owner_id, categories.name AS category
             FROM sets 
-            JOIN users ON sets.user_id = users.user_id 
+            JOIN users ON sets.user_id = users.user_id
+            LEFT JOIN categories ON sets.category_id = categories.category_id
             WHERE sets.set_id = $set_id";
+
 
 $result_set = $conn->query($sql_set);
 
