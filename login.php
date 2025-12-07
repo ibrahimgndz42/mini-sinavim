@@ -94,6 +94,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         /* Floating Input */
         .input-wrapper {
             position: relative;
+            display:flex;
             margin-bottom: 25px;
         }
 
