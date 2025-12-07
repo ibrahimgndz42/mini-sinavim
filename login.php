@@ -18,12 +18,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['user_id'] = $user['user_id'];
             $_SESSION['username'] = $user['username'];
 
-            header("Location: index.php");
-            exit;
+            $success = "Giriş başarılı! Yönlendiriliyorsunuz...";
+        } else {
+            $error = "Şifre hatalı!";
         }
+    } else {
+        $error = "Kullanıcı adı bulunamadı!";
     }
 
-    $error = "Kullanıcı adı veya şifre hatalı!";
 }
 ?>
 <!DOCTYPE html>
@@ -162,12 +164,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             filter: invert(1);
         }
 
-        /* Error Message */
         .error-msg {
+            background: rgba(255, 0, 0, 0.25);
+            border: 1px solid rgba(255, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 8px;
             color: #ff4d4d;
-            margin-bottom: 10px;
             text-align: center;
-            font-size: 14px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .success-msg {
+            background: rgba(0, 255, 150, 0.25);
+            border: 1px solid rgba(0, 255, 150, 0.4);
+            padding: 10px;
+            border-radius: 8px;
+            color: #004228ff;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: 600;
         }
 
         /* Login Button */
@@ -195,37 +211,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <div class="login-container">
     <div class="login-card">
 
+        <?php if(!isset($success)): ?>
         <div class="login-header">
-            <h2>Tekrar Hoş Geldin</h2>
-            <p>Hesabına giriş yap</p>
+            <h2>Giriş Yap</h2>
+            <p>Hesabınıza giriş yapın</p>
         </div>
+        <?php endif; ?>
+
+        <?php if(isset($success)): ?>
+            <p class="success-msg"><?= $success ?></p>
+
+            <script>
+                setTimeout(() => {
+                    window.location.href = "index.php";
+                }, 3000);
+            </script>
+        <?php endif; ?>
 
         <?php if(isset($error)): ?>
             <p class="error-msg"><?= $error ?></p>
         <?php endif; ?>
 
-       <form action="login.php" method="POST" class="login-form">
+        <?php if(!isset($success)): ?>
+        <form action="login.php" method="POST">
 
             <div class="input-wrapper">
-                <input type="text" id="username" name="username" required autocomplete="username" placeholder=" ">
+                <input type="text" id="username" name="username" required placeholder=" ">
                 <label for="username">Kullanıcı Adı</label>
                 <span class="focus-border"></span>
             </div>
 
-            <div class="input-wrapper password-wrapper">
-                <input type="password" id="password" name="password" required autocomplete="current-password" placeholder=" ">
+            <div class="input-wrapper">
+                <input type="password" id="password" name="password" required placeholder=" ">
                 <label for="password">Şifre</label>
-                <button type="button" class="password-toggle" onclick="togglePassword()">
-                    <span class="eye-icon"></span>
-                </button>
                 <span class="focus-border"></span>
             </div>
 
             <button type="submit" class="login-btn">Giriş Yap</button>
         </form>
+        <?php endif; ?>
 
     </div>
 </div>
+
 
 <script>
 function togglePassword() {
