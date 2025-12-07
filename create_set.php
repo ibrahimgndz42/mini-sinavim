@@ -1,41 +1,69 @@
 <?php
 include "session_check.php";
 include "connectDB.php";
-// include "menu.php"; // BURADAN KALDIRILDI, AŞAĞIYA BODY İÇİNE ALINDI
+
+// Kategorileri veritabanından çek (Hata almamak için en garantisi budur)
+$sql_cats = "SELECT * FROM categories ORDER BY category_id ASC";
+$result_cats = $conn->query($sql_cats);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $set_title = $_POST["set_title"];
-    $set_desc  = $_POST["set_desc"];
-    $set_category = $_POST["set_category"];
+    $set_title = trim($_POST["set_title"]); // Boşlukları temizle
+    $set_desc  = trim($_POST["set_desc"]);
+    $set_category = $_POST["set_category"]; // Hidden input'tan gelen ID
     $user_id   = $_SESSION["user_id"];
 
-    // Minimum 2 kart kontrolü
-    $validCardCount = 0;
-    foreach ($_POST["term"] as $key => $term) {
-        $def = $_POST["defination"][$key];
-        if (trim($term) !== "" && trim($def) !== "") {
-            $validCardCount++;
-        }
-    }
-
-    if ($validCardCount < 2) {
-        $error = "En az 2 kart eklemelisiniz!";
-    } else {
-        $sql = "INSERT INTO sets (user_id, title, description, category_id)
-                VALUES ('$user_id', '$set_title', '$set_desc', '$set_category')";
-        $conn->query($sql);
-
-        $set_id = $conn->insert_id;
-
-        foreach ($_POST["term"] as $key => $term) {
-            $def = $_POST["defination"][$key];
-            if (trim($term) !== "" && trim($def) !== "") {
-                $conn->query("INSERT INTO cards (set_id, term, defination)
-                              VALUES ('$set_id', '$term', '$def')");
+    // HATA KONTROLLERİ
+    if (empty($set_title)) {
+        $error = "Lütfen set başlığı giriniz.";
+    } 
+    elseif (empty($set_category)) {
+        $error = "Lütfen bir kategori seçiniz!";
+    } 
+    else {
+        // Kart Kontrolü
+        $validCardCount = 0;
+        if (isset($_POST["term"])) {
+            foreach ($_POST["term"] as $key => $term) {
+                $def = $_POST["defination"][$key];
+                if (trim($term) !== "" && trim($def) !== "") {
+                    $validCardCount++;
+                }
             }
         }
-        $success = "Set başarıyla oluşturuldu! Yönlendiriliyorsunuz...";
+
+        if ($validCardCount < 2) {
+            $error = "En az 2 dolu kart eklemelisiniz!";
+        } else {
+            // SQL Sorgusunu Hazırla (SQL Injection koruması ve tırnak hataları için prepare kullanılır)
+            // Eğer prepare kullanamıyorsan eski usul devam edebilirsin ama ID kontrolü şart.
+            
+            // Kategori ID'sinin veritabanında gerçekten var olup olmadığını kontrol etmiyoruz,
+            // çünkü foreign key hatası alıyorsan zaten yok demektir.
+            // Yukarıdaki SQL komutunu çalıştırdıysan burası çalışacaktır.
+
+            $stmt = $conn->prepare("INSERT INTO sets (user_id, title, description, category_id) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("issi", $user_id, $set_title, $set_desc, $set_category);
+            
+            if ($stmt->execute()) {
+                $set_id = $conn->insert_id;
+
+                // Kartları Ekle
+                $stmt_card = $conn->prepare("INSERT INTO cards (set_id, term, defination) VALUES (?, ?, ?)");
+                
+                foreach ($_POST["term"] as $key => $term) {
+                    $def = $_POST["defination"][$key];
+                    if (trim($term) !== "" && trim($def) !== "") {
+                        $stmt_card->bind_param("iss", $set_id, $term, $def);
+                        $stmt_card->execute();
+                    }
+                }
+                $success = "Set başarıyla oluşturuldu! Yönlendiriliyorsunuz...";
+            } else {
+                // Veritabanı hatasını ekrana yazdır (Geliştirme aşamasında faydalı)
+                $error = "Veritabanı Hatası: " . $conn->error;
+            }
+        }
     }
 }
 ?>
@@ -50,26 +78,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         margin: 0;
         font-family: 'Inter', sans-serif;
         background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
-        min-height: 100vh; /* height yerine min-height */
-        /* Flex özellikleri kaldırıldı, normal akış sağlandı */
+        min-height: 100vh;
     }
     
-    * {
-        box-sizing: border-box;
-    }
-
-    /* Menü stilini korumak için gerekirse buraya eklenebilir ama menu.php içindedir muhtemelen */
+    * { box-sizing: border-box; }
 
     .create-container {
         width: 100%;
         max-width: 650px;
         padding: 20px;
-        /* Sayfanın ortasına gelmesi için margin auto kullanıyoruz */
         margin: 40px auto; 
     }
 
     .glass-card { 
-        /* CSS Yorum satırı düzeltildi */
         backdrop-filter: blur(100px);
         background: rgba(255, 255, 255, 0.10);
         border-radius: 16px;
@@ -144,6 +165,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         top: -6px;
         font-size: 12px;
         color: #fff;
+        background: transparent; /* Label arkası */
     }
 
     .focus-border {
@@ -209,11 +231,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         top: 100%;
         left: 0;
         right: 0;
-        background: rgba(255,255,255,0.5);
+        background: rgba(255,255,255,0.9); /* Biraz daha opak yaptım okunsun diye */
         backdrop-filter: blur(15px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255,255,255,0.4);
-        color: #474747ff; 
+        color: #333; 
         border-radius: 12px;
         list-style: none;
         padding: 0;
@@ -227,10 +249,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     .custom-select ul.options li {
         padding: 10px 12px;
         transition: background 0.2s;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
     }
 
     .custom-select ul.options li:hover {
-        background: rgba(255,255,255,0.25);
+        background: rgba(142, 197, 252, 0.3);
     }
 
     .delete-btn {
@@ -254,7 +277,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     .add-btn { background: #fff; color:#333; }
-    .create-btn { background:#fff; font-weight:bold; }
+    .create-btn { background:#fff; font-weight:bold; color: #7b68ee; }
     .cancel-btn { background:#ff4040; color:#fff; }
 
     .success-msg, .error-msg {
@@ -274,7 +297,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     .error-msg {
         background: rgba(255,0,0,0.25);
         border: 1px solid rgba(255,0,0,0.4);
-        color:#ff1a1a;
+        color: #ffcccc; /* Koyu kırmızı arka planda okunsun diye açtım */
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     }
 </style>
 </head>
@@ -293,7 +317,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <?php if(isset($success)): ?>
         <p class="success-msg"><?= $success ?></p>
         <script>
-            setTimeout(()=>{ window.location.href="index.php"; }, 3000);
+            setTimeout(()=>{ window.location.href="my_sets.php"; }, 2000);
         </script>
     <?php elseif(isset($error)): ?>
         <p class="error-msg"><?= $error ?></p>
@@ -303,13 +327,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <form method="POST">
 
         <div class="input-wrapper">
-            <textarea class="auto-expand" rows="1" name="set_title" required  placeholder=" "></textarea>
+            <textarea class="auto-expand" rows="1" name="set_title" required  placeholder=" "><?php echo isset($_POST['set_title']) ? htmlspecialchars($_POST['set_title']) : ''; ?></textarea>
             <label>Set Başlığı</label>
             <span class="focus-border"></span>
         </div>
 
         <div class="input-wrapper">
-            <textarea class="auto-expand" rows="1" name="set_desc" rows="1" placeholder=" "></textarea>
+            <textarea class="auto-expand" rows="1" name="set_desc" rows="1" placeholder=" "><?php echo isset($_POST['set_desc']) ? htmlspecialchars($_POST['set_desc']) : ''; ?></textarea>
             <label>Açıklama (İsteğe bağlı)</label>
             <span class="focus-border"></span>
         </div>
@@ -318,17 +342,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="custom-select" id="categorySelect">
                 <div class="selected">Kategori Seçiniz</div>
                 <ul class="options">
-                    <li data-value="1">Genel</li>
-                    <li data-value="2">Matematik</li>
-                    <li data-value="3">Fen Bilimleri</li>
-                    <li data-value="4">Yabancı Dil</li>
-                    <li data-value="5">Tarih</li>
-                    <li data-value="6">Edebiyat</li>
-                    <li data-value="7">Yazılım</li>
-                    <li data-value="8">Diğer</li>
+                    <?php if ($result_cats->num_rows > 0): ?>
+                        <?php while($cat = $result_cats->fetch_assoc()): ?>
+                            <li data-value="<?php echo $cat['category_id']; ?>">
+                                <?php echo htmlspecialchars($cat['name']); ?>
+                            </li>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <li data-value="">Veritabanında kategori bulunamadı!</li>
+                    <?php endif; ?>
                 </ul>
             </div>
-            <input type="hidden" name="set_category" id="hiddenCategory">
+            <input type="hidden" name="set_category" id="hiddenCategory" required>
         </div>
 
         <h3 style="color:white; text-align:center;">Kartlar</h3>
@@ -375,7 +400,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </div>
 
 <script>
-    // JS Kodlarında bir değişiklik gerekmedi, aynen korundu.
     const categorySelect = document.getElementById("categorySelect");
     const selected = categorySelect.querySelector(".selected");
     const optionsContainer = categorySelect.querySelector(".options");
