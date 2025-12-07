@@ -49,9 +49,20 @@ if ($conn->query($sql_folder_sets) === TRUE) {
 
 // 4. Drop 'favorites' table if it exists (Optional clean up)
 $sql_drop_fav = "DROP TABLE IF EXISTS favorites";
-if ($conn->query($sql_drop_fav) === TRUE) {
-    echo "'favorites' table dropped.<br>";
+// 5. Create 'comments' table
+$sql_comments = "CREATE TABLE IF NOT EXISTS comments (
+    comment_id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    set_id INT(11) NOT NULL,
+    user_id INT(11) NOT NULL,
+    comment_text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (set_id) REFERENCES sets(set_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+)";
+
+if ($conn->query($sql_comments) === TRUE) {
+    echo "'comments' table created or already exists.<br>";
 } else {
-    echo "Error dropping 'favorites' table: " . $conn->error . "<br>";
+    echo "Error creating 'comments' table: " . $conn->error . "<br>";
 }
 ?>
