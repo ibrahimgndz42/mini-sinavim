@@ -1,6 +1,7 @@
 <?php
 include "session_check.php";
 include "connectDB.php";
+// include "menu.php"; // BURADAN KALDIRILDI, AŞAĞIYA BODY İÇİNE ALINDI
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -49,23 +50,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         margin: 0;
         font-family: 'Inter', sans-serif;
         background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        padding-top: 40px;
+        min-height: 100vh; /* height yerine min-height */
+        /* Flex özellikleri kaldırıldı, normal akış sağlandı */
     }
+    
     * {
         box-sizing: border-box;
     }
+
+    /* Menü stilini korumak için gerekirse buraya eklenebilir ama menu.php içindedir muhtemelen */
 
     .create-container {
         width: 100%;
         max-width: 650px;
         padding: 20px;
+        /* Sayfanın ortasına gelmesi için margin auto kullanıyoruz */
+        margin: 40px auto; 
     }
 
-    .glass-card { //en dış kart
+    .glass-card { 
+        /* CSS Yorum satırı düzeltildi */
         backdrop-filter: blur(100px);
         background: rgba(255, 255, 255, 0.10);
         border-radius: 16px;
@@ -89,8 +93,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     textarea.auto-expand {
         overflow: hidden;
-        min-height: 40px; /* Başlangıç yüksekliği */
-        resize: none;     /* Kullanıcı boyutunu değiştiremesin */
+        min-height: 40px; 
+        resize: none;    
         background: rgba(255,255,255,0.1);
         border-radius: 8px;
         border: 1px solid rgba(255,255,255,0.3);
@@ -100,7 +104,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         font-size: 15px;
         outline: none;
     }
-
 
     .input-wrapper {
         position: relative;
@@ -159,7 +162,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         width: 100%;
     }
 
-    /* Kart numarası etiketi */
     .card-number {
         position: absolute;
         top: 10px;
@@ -207,7 +209,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         top: 100%;
         left: 0;
         right: 0;
-
         background: rgba(255,255,255,0.5);
         backdrop-filter: blur(15px);
         -webkit-backdrop-filter: blur(12px);
@@ -231,7 +232,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     .custom-select ul.options li:hover {
         background: rgba(255,255,255,0.25);
     }
-
 
     .delete-btn {
         background: #ff4d4d;
@@ -281,225 +281,202 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <body>
 
+<?php include "menu.php"; ?>
+
 <div class="create-container">
-<div class="glass-card">
+    <div class="glass-card">
 
-<?php if(!isset($success)): ?>
-    <h2>Yeni Set Oluştur</h2>
-<?php endif; ?>
+    <?php if(!isset($success)): ?>
+        <h2>Yeni Set Oluştur</h2>
+    <?php endif; ?>
 
-<?php if(isset($success)): ?>
-    <p class="success-msg"><?= $success ?></p>
-    <script>
-        setTimeout(()=>{ window.location.href="index.php"; }, 3000);
-    </script>
-<?php elseif(isset($error)): ?>
-    <p class="error-msg"><?= $error ?></p>
-<?php endif; ?>
+    <?php if(isset($success)): ?>
+        <p class="success-msg"><?= $success ?></p>
+        <script>
+            setTimeout(()=>{ window.location.href="index.php"; }, 3000);
+        </script>
+    <?php elseif(isset($error)): ?>
+        <p class="error-msg"><?= $error ?></p>
+    <?php endif; ?>
 
-<?php if(!isset($success)): ?>
-<form method="POST">
+    <?php if(!isset($success)): ?>
+    <form method="POST">
 
-    <div class="input-wrapper">
-
-        <textarea class="auto-expand" rows="1" name="set_title" required  placeholder=" "></textarea>
-        <label>Set Başlığı</label>
-        <span class="focus-border"></span>
-    </div>
-
-    <div class="input-wrapper">
-        <textarea class="auto-expand" rows="1" name="set_desc" rows="1" placeholder=" "></textarea>
-        <label>Açıklama (İsteğe bağlı)</label>
-        <span class="focus-border"></span>
-    </div>
-
-    <div class="input-wrapper">
-        <div class="custom-select" id="categorySelect">
-            <div class="selected">Kategori Seçiniz</div>
-            <ul class="options">
-                <li data-value="1">Genel</li>
-                <li data-value="2">Matematik</li>
-                <li data-value="3">Fen Bilimleri</li>
-                <li data-value="4">Yabancı Dil</li>
-                <li data-value="5">Tarih</li>
-                <li data-value="6">Edebiyat</li>
-                <li data-value="7">Yazılım</li>
-                <li data-value="8">Diğer</li>
-            </ul>
-        </div>
-        <input type="hidden" name="set_category" id="hiddenCategory">
-    </div>
-
-
-    <h3 style="color:white; text-align:center;">Kartlar</h3>
-
-    <div id="cardsContainer">
-
-        <!-- 1. Kart -->
-        <div class="card-box">
-            <div class="input-wrapper">
-                <input type="text" name="term[]" placeholder=" " required>
-                <label>Ön Yüz</label>
-                <span class="focus-border"></span>
-            </div>
-
-            <div class="input-wrapper">
-                <input type="text" name="defination[]" placeholder=" " required>
-                <label>Arka Yüz</label>
-                <span class="focus-border"></span>
-            </div>
-
-            <button type="button" class="delete-btn" style="display:none">Kartı Sil</button>
+        <div class="input-wrapper">
+            <textarea class="auto-expand" rows="1" name="set_title" required  placeholder=" "></textarea>
+            <label>Set Başlığı</label>
+            <span class="focus-border"></span>
         </div>
 
-        <!-- 2. Kart -->
-        <div class="card-box">
-            <div class="input-wrapper">
-                <input type="text" name="term[]" placeholder=" " required>
-                <label>Ön Yüz</label>
-                <span class="focus-border"></span>
-            </div>
-
-            <div class="input-wrapper">
-                <input type="text" name="defination[]" placeholder=" " required>
-                <label>Arka Yüz</label>
-                <span class="focus-border"></span>
-            </div>
-
-            <button type="button" class="delete-btn" style="display:none">Kartı Sil</button>
+        <div class="input-wrapper">
+            <textarea class="auto-expand" rows="1" name="set_desc" rows="1" placeholder=" "></textarea>
+            <label>Açıklama (İsteğe bağlı)</label>
+            <span class="focus-border"></span>
         </div>
 
+        <div class="input-wrapper">
+            <div class="custom-select" id="categorySelect">
+                <div class="selected">Kategori Seçiniz</div>
+                <ul class="options">
+                    <li data-value="1">Genel</li>
+                    <li data-value="2">Matematik</li>
+                    <li data-value="3">Fen Bilimleri</li>
+                    <li data-value="4">Yabancı Dil</li>
+                    <li data-value="5">Tarih</li>
+                    <li data-value="6">Edebiyat</li>
+                    <li data-value="7">Yazılım</li>
+                    <li data-value="8">Diğer</li>
+                </ul>
+            </div>
+            <input type="hidden" name="set_category" id="hiddenCategory">
+        </div>
+
+        <h3 style="color:white; text-align:center;">Kartlar</h3>
+
+        <div id="cardsContainer">
+            <div class="card-box">
+                <div class="input-wrapper">
+                    <input type="text" name="term[]" placeholder=" " required>
+                    <label>Ön Yüz</label>
+                    <span class="focus-border"></span>
+                </div>
+
+                <div class="input-wrapper">
+                    <input type="text" name="defination[]" placeholder=" " required>
+                    <label>Arka Yüz</label>
+                    <span class="focus-border"></span>
+                </div>
+                <button type="button" class="delete-btn" style="display:none">Kartı Sil</button>
+            </div>
+
+            <div class="card-box">
+                <div class="input-wrapper">
+                    <input type="text" name="term[]" placeholder=" " required>
+                    <label>Ön Yüz</label>
+                    <span class="focus-border"></span>
+                </div>
+
+                <div class="input-wrapper">
+                    <input type="text" name="defination[]" placeholder=" " required>
+                    <label>Arka Yüz</label>
+                    <span class="focus-border"></span>
+                </div>
+                <button type="button" class="delete-btn" style="display:none">Kartı Sil</button>
+            </div>
+        </div>
+
+        <button type="button" class="add-btn" onclick="addCard()">+ Kart Ekle</button>
+        <button type="submit" class="create-btn">Seti Oluştur</button>
+        <button type="button" class="cancel-btn" onclick="window.location.href='index.php'">İptal</button>
+
+    </form>
+    <?php endif; ?>
     </div>
-
-    <button type="button" class="add-btn" onclick="addCard()">+ Kart Ekle</button>
-    <button type="submit" class="create-btn">Seti Oluştur</button>
-    <button type="button" class="cancel-btn" onclick="window.location.href='index.php'">İptal</button>
-
-</form>
-<?php endif; ?>
-</div></div>
+</div>
 
 <script>
+    // JS Kodlarında bir değişiklik gerekmedi, aynen korundu.
+    const categorySelect = document.getElementById("categorySelect");
+    const selected = categorySelect.querySelector(".selected");
+    const optionsContainer = categorySelect.querySelector(".options");
+    const hiddenInput = document.getElementById("hiddenCategory");
 
-const categorySelect = document.getElementById("categorySelect");
-const selected = categorySelect.querySelector(".selected");
-const optionsContainer = categorySelect.querySelector(".options");
-const hiddenInput = document.getElementById("hiddenCategory");
-
-selected.addEventListener("click", () => {
-    optionsContainer.style.display = optionsContainer.style.display === "block" ? "none" : "block";
-});
-
-optionsContainer.querySelectorAll("li").forEach(option => {
-    option.addEventListener("click", () => {
-        selected.textContent = option.textContent;
-        hiddenInput.value = option.dataset.value;
-        optionsContainer.style.display = "none";
+    selected.addEventListener("click", () => {
+        optionsContainer.style.display = optionsContainer.style.display === "block" ? "none" : "block";
     });
-});
 
-// Sayfa dışında tıklayınca dropdown kapanması
-document.addEventListener("click", (e) => {
-    if (!categorySelect.contains(e.target)) {
-        optionsContainer.style.display = "none";
-    }
-});
+    optionsContainer.querySelectorAll("li").forEach(option => {
+        option.addEventListener("click", () => {
+            selected.textContent = option.textContent;
+            hiddenInput.value = option.dataset.value;
+            optionsContainer.style.display = "none";
+        });
+    });
 
-
-// Kart numaralandırma fonksiyonu
-function updateCardNumbers() {
-    const cards = document.querySelectorAll("#cardsContainer .card-box");
-    cards.forEach((card, index) => {
-        let numberLabel = card.querySelector(".card-number");
-        if (!numberLabel) {
-            numberLabel = document.createElement("div");
-            numberLabel.className = "card-number";
-            card.appendChild(numberLabel);
+    document.addEventListener("click", (e) => {
+        if (!categorySelect.contains(e.target)) {
+            optionsContainer.style.display = "none";
         }
-        numberLabel.textContent = (index + 1) + ". Kart";
     });
-}
 
-function autoExpandTextarea(textarea) {
-    textarea.style.height = 'auto'; // Önce yükseklik sıfırlanır
-    textarea.style.height = textarea.scrollHeight + 'px'; // İçeriğe göre yükseklik
-}
+    function updateCardNumbers() {
+        const cards = document.querySelectorAll("#cardsContainer .card-box");
+        cards.forEach((card, index) => {
+            let numberLabel = card.querySelector(".card-number");
+            if (!numberLabel) {
+                numberLabel = document.createElement("div");
+                numberLabel.className = "card-number";
+                card.appendChild(numberLabel);
+            }
+            numberLabel.textContent = (index + 1) + ". Kart";
+        });
+    }
 
-// Sayfadaki tüm auto-expand textarea’lara event ekleyelim
-document.querySelectorAll('textarea.auto-expand').forEach(textarea => {
-    // Başlangıçta yükseklik ayarla
-    autoExpandTextarea(textarea);
+    function autoExpandTextarea(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+    }
 
-    // Yazarken yükseklik değişsin
-    textarea.addEventListener('input', () => autoExpandTextarea(textarea));
-});
+    document.querySelectorAll('textarea.auto-expand').forEach(textarea => {
+        autoExpandTextarea(textarea);
+        textarea.addEventListener('input', () => autoExpandTextarea(textarea));
+    });
 
+    function addCard() {
+        const container = document.getElementById("cardsContainer");
+        const box = document.createElement("div");
+        box.className = "card-box";
 
-// Kart ekleme fonksiyonu
-function addCard() {
-    const container = document.getElementById("cardsContainer");
+        box.innerHTML = `
+            <div class="input-wrapper">
+                <input type="text" name="term[]" placeholder=" " required>
+                <label>Ön Yüz</label>
+                <span class="focus-border"></span>
+            </div>
+            <div class="input-wrapper">
+                <input type="text" name="defination[]" placeholder=" " required>
+                <label>Arka Yüz</label>
+                <span class="focus-border"></span>
+            </div>
+            <button type="button" class="delete-btn">Kartı Sil</button>
+        `;
 
-    const box = document.createElement("div");
-    box.className = "card-box";
+        container.appendChild(box);
+        const delBtn = box.querySelector(".delete-btn");
+        delBtn.addEventListener("click", function() {
+            box.remove();
+            checkDeletes();
+            updateCardNumbers();
+        });
 
-    box.innerHTML = `
-        <div class="input-wrapper">
-            <input type="text" name="term[]" placeholder=" " required>
-            <label>Ön Yüz</label>
-            <span class="focus-border"></span>
-        </div>
-
-        <div class="input-wrapper">
-            <input type="text" name="defination[]" placeholder=" " required>
-            <label>Arka Yüz</label>
-            <span class="focus-border"></span>
-        </div>
-
-        <button type="button" class="delete-btn">Kartı Sil</button>
-    `;
-
-    container.appendChild(box);
-
-    // Yeni kart silme butonu listener
-    const delBtn = box.querySelector(".delete-btn");
-    delBtn.addEventListener("click", function() {
-        box.remove();
         checkDeletes();
         updateCardNumbers();
-    });
+    }
 
-    checkDeletes();
+    function attachDeleteListeners() {
+        const boxes = document.querySelectorAll("#cardsContainer .card-box");
+        boxes.forEach(box => {
+            const btn = box.querySelector(".delete-btn");
+            if (!btn.dataset.listener) {
+                btn.addEventListener("click", function() {
+                    box.remove();
+                    checkDeletes();
+                    updateCardNumbers();
+                });
+                btn.dataset.listener = true;
+            }
+        });
+    }
+
+    function checkDeletes() {
+        const boxes = document.querySelectorAll(".card-box");
+        const delBtns = document.querySelectorAll(".delete-btn");
+        delBtns.forEach(btn => btn.style.display = boxes.length > 2 ? "block" : "none");
+    }
+
+    attachDeleteListeners();
     updateCardNumbers();
-}
-
-// Mevcut tüm kartlara silme listener ekle
-function attachDeleteListeners() {
-    const boxes = document.querySelectorAll("#cardsContainer .card-box");
-    boxes.forEach(box => {
-        const btn = box.querySelector(".delete-btn");
-        if (!btn.dataset.listener) { // aynı listener birden eklenmesin
-            btn.addEventListener("click", function() {
-                box.remove();
-                checkDeletes();
-                updateCardNumbers();
-            });
-            btn.dataset.listener = true;
-        }
-    });
-}
-
-// Silme butonlarını ve görünürlüğü kontrol
-function checkDeletes() {
-    const boxes = document.querySelectorAll(".card-box");
-    const delBtns = document.querySelectorAll(".delete-btn");
-
-    delBtns.forEach(btn => btn.style.display = boxes.length > 2 ? "block" : "none");
-}
-
-// Sayfa yüklendiğinde listener ekle ve numaraları güncelle
-attachDeleteListeners();
-updateCardNumbers();
-checkDeletes();
+    checkDeletes();
 </script>
 
 </body>
