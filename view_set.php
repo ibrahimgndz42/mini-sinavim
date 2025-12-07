@@ -89,12 +89,22 @@ while($row = $result_cards->fetch_assoc()) {
     <meta charset="UTF-8">
     <title><?php echo htmlspecialchars($set['title']); ?> - Mini Sınavım</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .view-container {
+            padding-right: 100px;
+            padding-left: 100px;
+            padding-top: 10px;
+        }
+    </style>
 </head>
 <body>
 
     <div style="text-align: center; margin-top: 30px;">
-        <h1 style="margin-bottom: 10px;"><?php echo htmlspecialchars($set['title']); ?></h1>
-        <p style="color: #555;"><?php echo nl2br(htmlspecialchars($set['description'])); ?></p>
+
+        <div class="view-container">
+            <h1 style="margin-bottom: 10px; word-wrap: break-word; white-space: normal;"><?php echo htmlspecialchars($set['title']); ?></h1>
+            <p style="color: #555; word-wrap: break-word; white-space: normal;"><?php echo nl2br(htmlspecialchars($set['description'])); ?></p>
+        </div>
         <small>Kategori: <?php echo htmlspecialchars($set['category']); ?> | Oluşturan: <b><?php echo htmlspecialchars($set['username']); ?></b></small>
         
         <div style="margin-top: 15px;">
