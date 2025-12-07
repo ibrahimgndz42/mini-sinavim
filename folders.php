@@ -29,17 +29,10 @@ $result = $conn->query($sql_folders);
 <head>
     <meta charset="UTF-8">
     <title>Klasörlerim - Mini Sınavım</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
     <style>
         /* --- DÜZELTİLEN CSS --- */
-        body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
-            min-height: 100vh;
-            /* Flex özelliklerini kaldırdık, blok akışına döndük */
-            display: block; 
-        }
+
 
         .container {
             width: 100%;

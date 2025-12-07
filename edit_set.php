@@ -115,13 +115,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
 <meta charset="UTF-8">
 <title>Seti Düzenle</title>
+<link rel="stylesheet" href="style.css">
 <style>
-    body {
-        margin: 0;
-        font-family: 'Inter', sans-serif;
-        background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
-        min-height: 100vh;
-    }
     * { box-sizing: border-box; }
 
     .create-container {
