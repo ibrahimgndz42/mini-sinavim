@@ -41,6 +41,76 @@ $res_folders = $conn->query($sql_folders);
             font-size: 24px;
             color: #333;
         }
+
+            
+    .sets-container {
+        /* Set kartlarını yan yana (grid) veya esnek (flex) bir düzende gösterir. */
+        display: flex;
+        flex-wrap: wrap;
+        /* Kartlar sığmazsa alt satıra geçsin */
+        gap: 20px;
+        /* Kartlar arasındaki boşluk */
+        justify-content: center;
+        /* Kartları ortalamak için */
+        padding: 20px;
+        max-width: 1200px;
+        /* Maksimum genişlik */
+        margin: 0 auto;
+        /* Ortalamak için */
+    }
+
+    .set-card {
+        /* Bir kartın temel görünümü */
+        display: flex;
+        flex-direction: column;
+        width: 300px;
+        /* Kart genişliği */
+        background-color: #ffffff;
+        /* Beyaz arka plan */
+        border: 1px solid #e0e0e0;
+        /* Hafif kenarlık */
+        border-radius: 8px;
+        /* Yuvarlak köşeler */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        /* Hafif gölge */
+        padding: 15px;
+        text-decoration: none;
+        /* Link alt çizgisini kaldır */
+        color: #333;
+        /* Metin rengi */
+        transition: transform 0.2s, box-shadow 0.2s;
+        min-height: 150px;
+        /* Kartın minimum yüksekliği */
+    }
+
+    .set-card:hover {
+        transform: translateY(-5px);
+        /* Üzerine gelindiğinde hafifçe yukarı kaydır */
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        /* Gölgeyi belirginleştir */
+    }
+
+    .set-card h3 {
+        margin-top: 5px;
+        margin-bottom: 10px;
+        font-size: 1.2em;
+        color: #007bff;
+        /* Başlık rengi */
+    }
+
+    .set-card .desc {
+        font-size: 0.9em;
+        color: #666;
+        flex-grow: 1;
+        /* Açıklama alanının esnemesini sağlar */
+    }
+
+    .set-card .meta {
+        margin-top: 10px;
+        font-size: 0.8em;
+        color: #999;
+        text-align: right;
+    }
     </style>
 </head>
 <body>
@@ -57,8 +127,11 @@ $res_folders = $conn->query($sql_folders);
         <?php if ($res_my_sets->num_rows > 0): ?>
             <?php while($row = $res_my_sets->fetch_assoc()): ?>
                 <a href="view_set.php?id=<?php echo $row['set_id']; ?>" class="set-card">
+                    <?php 
+                    $category_text = isset($row['category']) && $row['category'] !== null && $row['category'] !== '' ? htmlspecialchars($row['category']) : 'Kategori Yok';
+                    ?>
                     <div style="background: #eef; padding: 2px 8px; border-radius: 4px; font-size: 12px; align-self: flex-start; margin-bottom: 5px;">
-                        <?php echo htmlspecialchars($row['category']); ?>
+                        <?php echo $category_text; ?>
                     </div>
                     <h3><?php echo htmlspecialchars($row['title']); ?></h3>
                     <div class="desc">
