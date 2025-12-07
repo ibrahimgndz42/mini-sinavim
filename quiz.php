@@ -1,7 +1,7 @@
 <?php
 include "session_check.php";
 include "connectDB.php";
-include "menu.php";
+// include "menu.php"; // Tam ekran glass tasarımında menüyü genelde kaldırırız, isterseniz açabilirsiniz.
 
 if (!isset($_GET['id'])) {
     echo "ID gerekli.";
@@ -20,7 +20,7 @@ if ($res_set->num_rows == 0) {
 $set = $res_set->fetch_assoc();
 
 // Kartları çek
-$sql_cards = "SELECT front_text, back_text FROM cards WHERE set_id = $set_id";
+$sql_cards = "SELECT term, defination FROM cards WHERE set_id = $set_id";
 $res_cards = $conn->query($sql_cards);
 
 $cards = [];
@@ -28,8 +28,14 @@ while($row = $res_cards->fetch_assoc()) {
     $cards[] = $row;
 }
 
+// Test için en az 4 kart kontrolü
 if (count($cards) < 4) {
-    echo "<center><h3>Test modu için en az 4 kart gereklidir.</h3><a href='view_set.php?id=$set_id'>Geri Dön</a></center>";
+    // Hata mesajı için basit bir HTML çıktısı
+    echo '<body style="background: linear-gradient(135deg, #8EC5FC, #E0C3FC); font-family: sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; margin:0;">';
+    echo '<div style="background: rgba(255,255,255,0.25); backdrop-filter: blur(15px); padding:40px; border-radius:16px; text-align:center; color:white; box-shadow: 0 8px 32px rgba(0,0,0,0.15);">';
+    echo '<h3>Test modu için en az 4 kart gereklidir.</h3>';
+    echo '<a href="view_set.php?id='.$set_id.'" style="color:#fff; text-decoration:underline;">Geri Dön</a>';
+    echo '</div></body>';
     exit;
 }
 ?>
@@ -38,74 +44,206 @@ if (count($cards) < 4) {
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test: <?php echo htmlspecialchars($set['title']); ?></title>
-    <link rel="stylesheet" href="style.css">
     <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
         .quiz-container {
-            max-width: 600px;
-            margin: 40px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .glass-card {
+            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 16px;
+            padding: 35px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            position: relative;
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 18px;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.25s ease;
+            text-decoration: none;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.55);
+            transform: scale(1.1);
+        }
+
+        .quiz-header {
             text-align: center;
+            margin-bottom: 25px;
+            color: #fff;
         }
-        .question {
+
+        .quiz-header h2 {
+            margin: 0 0 10px 0;
             font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
         }
+
+        .progress-text {
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .question {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #fff;
+            min-height: 60px; /* Soru kısa olsa bile alan kaplasın */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .options {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
+
         .option-btn {
             padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            background: #f9f9f9;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.85);
+            color: #333;
             cursor: pointer;
-            font-size: 18px;
-            transition: 0.2s;
+            font-size: 16px;
+            font-weight: 600;
+            transition: 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
+
         .option-btn:hover {
-            background: #eef;
-            border-color: #aaf;
+            background: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
         }
+
         .correct {
-            background-color: #c8e6c9 !important; /* Yeşil */
-            border-color: #4caf50 !important;
+            background-color: #2ecc71 !important; /* Canlı Yeşil */
+            color: white !important;
+            box-shadow: 0 0 10px #2ecc71;
         }
+
         .wrong {
-            background-color: #ffcdd2 !important; /* Kırmızı */
-            border-color: #f44336 !important;
+            background-color: #e74c3c !important; /* Canlı Kırmızı */
+            color: white !important;
+            box-shadow: 0 0 10px #e74c3c;
         }
+
+        /* Sonuç Alanı */
         #resultArea {
             display: none;
+            text-align: center;
+            color: white;
         }
+
+        .result-score {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .action-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px;
+            transition: 0.3s;
+        }
+
+        .btn-retry {
+            background: #fff;
+            color: #333;
+        }
+        .btn-retry:hover { background: #f0f0f0; }
+
+        .btn-back {
+            background: rgba(255,255,255,0.3);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.5); }
+
     </style>
 </head>
 <body>
 
-<div class="quiz-container" id="quizBox">
-    <div style="margin-bottom: 20px; color: #666;">
-        Soru <span id="qIndex">1</span> / <span id="qTotal"><?php echo count($cards); ?></span>
+<div class="quiz-container">
+    <div class="glass-card">
+        
+        <a href="view_set.php?id=<?php echo $set_id; ?>" class="close-btn">✕</a>
+
+        <div id="quizBox">
+            <div class="quiz-header">
+                <h2><?php echo htmlspecialchars($set['title']); ?></h2>
+                <div class="progress-text">
+                    Soru <span id="qIndex">1</span> / <span id="qTotal"><?php echo count($cards); ?></span>
+                </div>
+            </div>
+
+            <div class="question" id="questionText">Soru Yükleniyor...</div>
+
+            <div class="options" id="optionsBox">
+                </div>
+        </div>
+
+        <div id="resultArea">
+            <h2>Test Tamamlandı!</h2>
+            <div class="result-score">
+                <span id="scoreVal">0</span> / <?php echo count($cards); ?>
+            </div>
+            <p>Doğru Cevap Sayısı</p>
+            <br>
+            <button class="action-btn btn-retry" onclick="location.reload()">Tekrar Çöz</button>
+            <button class="action-btn btn-back" onclick="window.location.href='view_set.php?id=<?php echo $set_id; ?>'">Sete Dön</button>
+        </div>
+
     </div>
-
-    <div class="question" id="questionText">Soru Yükleniyor...</div>
-
-    <div class="options" id="optionsBox">
-        <!-- Şıklar buraya gelecek -->
-    </div>
-</div>
-
-<div class="quiz-container" id="resultArea">
-    <h2>Test Tamamlandı!</h2>
-    <p style="font-size: 20px;">Doğru Sayısı: <b id="scoreVal">0</b> / <?php echo count($cards); ?></p>
-    <br>
-    <button onclick="location.reload()" style="padding: 10px 20px; cursor: pointer;">Tekrar Çöz</button>
-    <a href="view_set.php?id=<?php echo $set_id; ?>" style="margin-left: 20px; text-decoration: none;">Sete Dön</a>
 </div>
 
 <script>
@@ -113,7 +251,6 @@ if (count($cards) < 4) {
     let currentQuestion = 0;
     let score = 0;
     
-    // Kartları karıştır (Sor sormak için)
     // Fisher-Yates Shuffle
     function shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -123,7 +260,7 @@ if (count($cards) < 4) {
         return array;
     }
 
-    // Soruları hazırla: Her kart bir soru olacak ama sırasını karıştıralım
+    // Soruları karıştır
     let questions = [...cards];
     shuffle(questions);
 
@@ -142,21 +279,18 @@ if (count($cards) < 4) {
 
         const q = questions[currentQuestion];
         qIndexSpan.textContent = currentQuestion + 1;
-        questionText.textContent = q.front_text;
+        questionText.textContent = q.term;
         
         // Şıkları hazırla
-        // Doğru cevap
-        let options = [q.back_text];
+        let options = [q.defination];
         
-        // Yanlış cevapları havuzdan (diğer kartların tanımlarından) çek
-        // Mevcut kart dışındaki tüm tanımları bir listeye al
-        let allDefinitions = cards.map(c => c.back_text).filter(d => d !== q.back_text);
+        // Yanlış cevapları havuzdan çek (kendi cevabı hariç)
+        let allDefinitions = cards.map(c => c.defination).filter(d => d !== q.defination);
         
-        // Karıştır ve ilk 3'ünü al
         shuffle(allDefinitions);
         options.push(...allDefinitions.slice(0, 3));
         
-        // Şıkları karıştır ki doğru cevap hep en başta olmasın
+        // Şıkları karıştır
         shuffle(options);
 
         optionsBox.innerHTML = "";
@@ -164,13 +298,13 @@ if (count($cards) < 4) {
             const btn = document.createElement("button");
             btn.className = "option-btn";
             btn.textContent = opt;
-            btn.onclick = () => checkAnswer(btn, opt, q.back_text);
+            btn.onclick = () => checkAnswer(btn, opt, q.defination);
             optionsBox.appendChild(btn);
         });
     }
 
     function checkAnswer(btn, selected, correct) {
-        // Tüm butonları devre dışı bırak
+        // Tüm butonları kilitle
         const buttons = document.querySelectorAll(".option-btn");
         buttons.forEach(b => b.disabled = true);
 
@@ -179,12 +313,13 @@ if (count($cards) < 4) {
             score++;
         } else {
             btn.classList.add("wrong");
-            // Doğruyu göster
+            // Doğru olanı göster
             buttons.forEach(b => {
                 if (b.textContent === correct) b.classList.add("correct");
             });
         }
 
+        // 1.5 saniye bekle ve sonraki soruya geç
         setTimeout(() => {
             currentQuestion++;
             loadQuestion();
