@@ -1,12 +1,12 @@
 <?php
-include "session_check.php";
+include "session_check.php"; 
 include "connectDB.php";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $set_title = $_POST["set_title"];
     $set_desc  = $_POST["set_desc"];
-    $set_category = $_POST["set_category"];
+    $category  = $_POST["category"]; // Kategori al
     $user_id   = $_SESSION["user_id"];
 
     // Minimum 2 kart kontrolü
@@ -75,6 +75,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         animation: fadeIn 0.6s ease;
     }
 
+    // 1) Set kaydı
+    $sql = "INSERT INTO sets (user_id, title, description, category)
+            VALUES ('$user_id', '$set_title', '$set_desc', '$category')";
+    $conn->query($sql);
     @keyframes fadeIn {
         from {opacity:0; transform:translateY(20px);}
         to   {opacity:1; transform:translateY(0);}
@@ -102,6 +106,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
 
+        $sql = "INSERT INTO cards (set_id, front_text, back_text)
+                VALUES ('$set_id', '$term_text', '$defination_text')";
+        $conn->query($sql);
     .input-wrapper {
         position: relative;
         margin-bottom: 25px;
