@@ -1,5 +1,4 @@
 <?php
-include "session_check.php";
 include "connectDB.php";
 include "menu.php";
 
