@@ -1,5 +1,9 @@
 <?php
-session_start(); //session var mı yok mu kontrolü
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
