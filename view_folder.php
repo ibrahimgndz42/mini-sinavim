@@ -1,7 +1,8 @@
 <?php
 include "connectDB.php";
-include "menu.php";
 include "session_check.php";
+// Menüyü dahil ediyoruz
+include "menu.php"; 
 
 if (!isset($_GET['id'])) {
     header("Location: folders.php");
@@ -11,12 +12,12 @@ if (!isset($_GET['id'])) {
 $folder_id = intval($_GET['id']);
 $user_id = $_SESSION['user_id'];
 
-// Klasör bilgisini çek (Sadece kendi klasörünü görebilir)
+// Klasör bilgisini çek
 $sql_folder = "SELECT * FROM folders WHERE folder_id = $folder_id AND user_id = $user_id";
 $res_folder = $conn->query($sql_folder);
 
 if ($res_folder->num_rows == 0) {
-    echo "<center><h1>Klasör bulunamadı veya erişim reddedildi.</h1><a href='folders.php'>Geri Dön</a></center>";
+    echo "<script>alert('Klasör bulunamadı!'); window.location.href='folders.php';</script>";
     exit;
 }
 
@@ -60,42 +61,273 @@ $res_sets = $conn->query($sql_sets);
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title><?php echo htmlspecialchars($folder['name']); ?> - Klasör Detayı</title>
-    <link rel="stylesheet" href="style.css">
+    <title><?php echo htmlspecialchars($folder['name']); ?> - Klasör</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
+            min-height: 100vh;
+            /* DÜZELTME: Menü ve içeriği alt alta dizmek için column yapıyoruz */
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            /* Padding'i biraz kıstık çünkü menü yer kaplayacak */
+            padding: 0 20px 40px 20px; 
+            box-sizing: border-box;
+        }
+
+        /* Menü dosyasının içeriğinin %100 genişlikte olmasını sağlamak için */
+        body > nav, body > header, .menu-container {
+            width: 100%;
+            z-index: 1000;
+            margin-bottom: 20px; /* Menü ile kart arası boşluk */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 750px;
+            margin-top: 20px; /* Menüden biraz aşağıda başlasın */
+            flex: 1; 
+        }
+
+        .glass-card {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.35);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.4);
+            position: relative;
+            min-height: 400px;
+        }
+
+        .close-page-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 20px;
+            transition: 0.3s;
+        }
+        .close-page-btn:hover {
+            background: white;
+            color: #333;
+        }
+
+        .header-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .folder-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .folder-icon {
+            font-size: 40px;
+        }
+
+        .delete-folder-btn {
+            margin-top: 15px;
+            background: rgba(220, 53, 69, 0.2);
+            color: #721c24;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            padding: 8px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .delete-folder-btn:hover {
+            background: rgba(220, 53, 69, 0.8);
+            color: white;
+        }
+
+        .sets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .set-card {
+            background: rgba(255, 255, 255, 0.65);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: #333;
+            border: 1px solid rgba(255,255,255,0.6);
+            display: block;
+        }
+
+        .set-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+        }
+
+        .category-tag {
+            background: #8EC5FC;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .set-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 0 5px 0;
+            color: #2c3e50;
+        }
+
+        .set-desc {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .set-author {
+            font-size: 12px;
+            color: #888;
+            font-style: italic;
+        }
+
+        /* YENİLENMİŞ SİLME BUTONU (X) */
+        .remove-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.5); /* Hafif şeffaf beyaz */
+            backdrop-filter: blur(4px);
+            color: #ff4d4d; /* Kırmızı ikon */
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px; /* İkon biraz daha büyük */
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.8);
+            transition: all 0.3s ease;
+            z-index: 10; /* Kartın üzerinde kalsın */
+        }
+
+        .remove-icon:hover {
+            background: #ff4d4d;
+            color: white;
+            transform: rotate(90deg); /* Üzerine gelince dönme efekti */
+            box-shadow: 0 4px 10px rgba(255, 77, 77, 0.3);
+            border-color: #ff4d4d;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+            font-size: 16px;
+            grid-column: 1 / -1;
+            padding: 20px;
+        }
+
+    </style>
 </head>
 <body>
-    <div class="container" style="max-width: 900px; margin: 40px auto; padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px;">
-            <div>
-                <h1>📁 <?php echo htmlspecialchars($folder['name']); ?></h1>
-                <a href="folders.php">← Klasörlere Dön</a>
-            </div>
-            <a href="view_folder.php?id=<?php echo $folder_id; ?>&delete=true" onclick="return confirm('Bu klasörü ve içindeki bağlantıları silmek istediğine emin misin? (Setlerin kendisi silinmez)');" style="background: red; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none;">Klasörü Sil</a>
-        </div>
 
-        <div class="sets-container">
-            <?php if ($res_sets->num_rows > 0): ?>
-                <?php while($row = $res_sets->fetch_assoc()): ?>
-                    <div class="set-card" style="position: relative;">
-                        <a href="view_set.php?id=<?php echo $row['set_id']; ?>" style="text-decoration: none; color: inherit; display: block;">
-                            <div style="background: #eef; padding: 2px 8px; border-radius: 4px; font-size: 12px; align-self: flex-start; margin-bottom: 5px;">
-                                <?php echo htmlspecialchars($row['category']); ?>
-                            </div>
-                            <h3><?php echo htmlspecialchars($row['title']); ?></h3>
-                            <div class="desc">
-                                <?php echo htmlspecialchars(substr($row['description'], 0, 80)); ?>...
-                            </div>
-                            <div class="meta">
-                                Oluşturan: <?php echo htmlspecialchars($row['username']); ?>
-                            </div>
-                        </a>
-                        <a href="view_folder.php?id=<?php echo $folder_id; ?>&remove_set=<?php echo $row['set_id']; ?>" onclick="return confirm('Bu seti klasörden çıkarmak istiyor musun?');" style="position: absolute; top: 10px; right: 10px; background: #fff; border: 1px solid #ccc; padding: 2px 6px; border-radius: 4px; text-decoration: none; font-size: 12px;">❌ Çıkar</a>
+    <div class="container">
+        <div class="glass-card">
+            
+            <a href="folders.php" class="close-page-btn">✕</a>
+
+            <div class="header-section">
+                <div class="folder-title">
+                    <span class="folder-icon">📁</span> 
+                    <?php echo htmlspecialchars($folder['name']); ?>
+                </div>
+
+                <a href="view_folder.php?id=<?php echo $folder_id; ?>&delete=true" 
+                   class="delete-folder-btn"
+                   onclick="return confirm('Bu klasörü silmek istediğine emin misin? (Setler silinmez)');">
+                   🗑 Klasörü Sil
+                </a>
+            </div>
+
+            <div class="sets-grid">
+                <?php if ($res_sets->num_rows > 0): ?>
+                    <?php while($row = $res_sets->fetch_assoc()): ?>
+                        
+                        <div style="position: relative;">
+                            
+                            <a href="view_set.php?id=<?php echo $row['set_id']; ?>" class="set-card">
+                                <?php if(!empty($row['category'])): ?>
+                                    <span class="category-tag"><?php echo htmlspecialchars($row['category']); ?></span>
+                                <?php else: ?>
+                                    <span class="category-tag" style="background:#ccc;">Genel</span>
+                                <?php endif; ?>
+
+                                <h3 class="set-title"><?php echo htmlspecialchars($row['title']); ?></h3>
+                                
+                                <div class="set-desc">
+                                    <?php 
+                                        $desc = $row['description'];
+                                        echo htmlspecialchars(mb_strlen($desc) > 60 ? mb_substr($desc, 0, 60) . "..." : $desc); 
+                                    ?>
+                                </div>
+                                
+                                <div class="set-author">
+                                    Oluşturan: <?php echo htmlspecialchars($row['username']); ?>
+                                </div>
+                            </a>
+
+                            <a href="view_folder.php?id=<?php echo $folder_id; ?>&remove_set=<?php echo $row['set_id']; ?>" 
+                               class="remove-icon"
+                               onclick="return confirm('Bu seti klasörden çıkarmak istiyor musun?');"
+                               title="Listeden Çıkar">
+                               &times;
+                            </a>
+                        </div>
+
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <div class="empty-state">
+                        Bu klasör henüz boş.
                     </div>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <p>Bu klasörde henüz hiç set yok.</p>
-            <?php endif; ?>
+                <?php endif; ?>
+            </div>
+
         </div>
     </div>
+
 </body>
 </html>
