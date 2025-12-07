@@ -34,6 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giriş Yap</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         @keyframes onAutoFillStart {}
@@ -118,13 +119,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         /* Floating Input */
         .input-wrapper {
             position: relative;
-            display:flex;
+            display: flex;
             margin-bottom: 25px;
+            align-items: center;
         }
 
         .input-wrapper input {
             width: 100%;
             padding: 14px 12px;
+            /* İkon için sağdan boşluk bırakıyoruz */
+            padding-right: 40px; 
             border: 1px solid rgba(255,255,255,0.4);
             background: rgba(255,255,255,0.15);
             border-radius: 8px;
@@ -166,27 +170,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             width: 100%;
         }
 
-        /* Password Toggle */
-        .password-wrapper {
-            position: relative;
-        }
-
-        .password-toggle {
+        /* Göz İkonu Stili */
+        .toggle-password {
             position: absolute;
-            right: 10px;
+            right: 15px;
             top: 50%;
             transform: translateY(-50%);
-            background: none;
-            border: none;
             cursor: pointer;
+            color: rgba(255, 255, 255, 0.7);
+            transition: color 0.3s;
+            z-index: 10;
         }
 
-        .password-toggle .eye-icon {
-            width: 20px;
-            height: 20px;
-            background: url('https://cdn-icons-png.flaticon.com/512/709/709612.png') no-repeat center;
-            background-size: contain;
-            filter: invert(1);
+        .toggle-password:hover {
+            color: #fff;
         }
 
         .error-msg {
@@ -271,6 +268,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input type="password" id="password" name="password" required placeholder=" ">
                 <label for="password">Şifre</label>
                 <span class="focus-border"></span>
+                <i class="fa-solid fa-eye toggle-password" onclick="togglePassword()"></i>
             </div>
 
             <button type="submit" class="login-btn">Giriş Yap</button>
@@ -283,8 +281,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <script>
 function togglePassword() {
-    const pass = document.getElementById("password");
-    pass.type = pass.type === "password" ? "text" : "password";
+    const passwordInput = document.getElementById('password');
+    const icon = document.querySelector('.toggle-password');
+
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        // İkonu 'göz kapalı' (slash) yap
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        // İkonu tekrar 'göz açık' yap
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
 }
 
 // Auto-fill yakalama + elle yazma kontrolü
