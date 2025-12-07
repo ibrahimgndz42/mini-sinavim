@@ -1,7 +1,6 @@
 <?php
 session_start();
 include "connectDB.php";
-include "menu.php";
 include "session_check.php";
 
 if (!isset($_GET['set_id'])) {
@@ -12,7 +11,7 @@ if (!isset($_GET['set_id'])) {
 $set_id = intval($_GET['set_id']);
 $user_id = $_SESSION['user_id'];
 
-// Set bilgisini çek (Kullanıcıya neyi eklediğini göstermek için)
+// Set bilgisini çek
 $sql_set = "SELECT title FROM sets WHERE set_id = $set_id";
 $res_set = $conn->query($sql_set);
 if ($res_set->num_rows == 0) {
@@ -21,29 +20,69 @@ if ($res_set->num_rows == 0) {
 }
 $set = $res_set->fetch_assoc();
 
-// Ekleme İşlemi
+// ---------------------------------------------------------
+// 1. MEVCUT KLASÖRE EKLEME İŞLEMİ (GET)
+// ---------------------------------------------------------
 if (isset($_GET['add_to_folder'])) {
     $folder_id = intval($_GET['add_to_folder']);
     
-    // Klasörün kullanıcıya ait olduğunu doğrula
     $check_folder = $conn->query("SELECT * FROM folders WHERE folder_id = $folder_id AND user_id = $user_id");
     if ($check_folder->num_rows > 0) {
         $sql_insert = "INSERT IGNORE INTO folder_sets (folder_id, set_id) VALUES ($folder_id, $set_id)";
         if ($conn->query($sql_insert)) {
-            echo "<script>alert('Set klasöre eklendi!'); window.location.href='view_set.php?id=$set_id';</script>";
-            exit;
+            $success = "Set klasöre başarıyla eklendi!";
+            echo "<script>
+                setTimeout(function(){
+                    window.location.href='view_set.php?id=$set_id';
+                }, 1500);
+            </script>";
         } else {
-            echo "Hata: " . $conn->error;
+            $error = "Hata: " . $conn->error;
         }
     } else {
-        echo "Yetkisiz işlem.";
+        $error = "Bu işlem için yetkiniz yok.";
+    }
+}
+
+// ---------------------------------------------------------
+// 2. YENİ KLASÖR OLUŞTUR VE EKLE İŞLEMİ (POST)
+// ---------------------------------------------------------
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['new_folder_name'])) {
+    $new_name = trim($_POST['new_folder_name']);
+
+    if (!empty($new_name)) {
+        $new_name_clean = $conn->real_escape_string($new_name);
+        
+        // A) Önce Klasörü Oluştur
+        $sql_create = "INSERT INTO folders (user_id, name) VALUES ($user_id, '$new_name_clean')";
+        
+        if ($conn->query($sql_create)) {
+            $new_folder_id = $conn->insert_id; // Yeni oluşan ID'yi al
+
+            // B) Sonra Seti Bu Klasöre Ekle
+            $sql_link = "INSERT INTO folder_sets (folder_id, set_id) VALUES ($new_folder_id, $set_id)";
+            
+            if ($conn->query($sql_link)) {
+                $success = "Yeni klasör oluşturuldu ve set eklendi!";
+                echo "<script>
+                    setTimeout(function(){
+                        window.location.href='view_set.php?id=$set_id';
+                    }, 3000);
+                </script>";
+            } else {
+                $error = "Klasör oluştu ama set eklenemedi: " . $conn->error;
+            }
+        } else {
+            $error = "Klasör oluşturulurken hata: " . $conn->error;
+        }
+    } else {
+        $error = "Lütfen bir klasör adı girin.";
     }
 }
 
 // Kullanıcının klasörlerini çek
 $sql_folders = "SELECT * FROM folders WHERE user_id = $user_id ORDER BY created_at DESC";
 $res_folders = $conn->query($sql_folders);
-
 ?>
 
 <!DOCTYPE html>
@@ -51,28 +90,215 @@ $res_folders = $conn->query($sql_folders);
 <head>
     <meta charset="UTF-8">
     <title>Klasöre Ekle</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
+            min-height: 100vh;
+            display: block; 
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            margin: 80px auto; 
+        }
+
+        .glass-card {
+            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 16px;
+            padding: 35px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            animation: fadeIn 0.6s ease;
+            position: relative;
+            text-align: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 18px;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            transition: 0.25s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.55);
+            transform: scale(1.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #fff;
+            font-size: 24px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        p.sub-text {
+            color: #f0f0f0;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .folder-list {
+            max-height: 250px; /* Listeyi biraz kısalttık ki form sığsın */
+            overflow-y: auto;
+            margin-top: 20px;
+            padding-right: 5px;
+            margin-bottom: 20px;
+        }
+
+        .folder-list::-webkit-scrollbar { width: 6px; }
+        .folder-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .folder-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 10px; }
+
+        .folder-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .folder-item:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: translateX(5px);
+            color: #333;
+        }
+
+        .success-msg, .error-msg {
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .success-msg { background: rgba(0, 255, 150, 0.25); border: 1px solid rgba(0, 255, 150, 0.4); color: #004228; }
+        .error-msg { background: rgba(255, 0, 0, 0.25); border: 1px solid rgba(255, 0, 0, 0.4); color: #ff4d4d; }
+
+        /* --- YENİ KLASÖR FORMU STİLİ --- */
+        .new-folder-area {
+            border-top: 1px solid rgba(255,255,255,0.3);
+            padding-top: 20px;
+            margin-top: 10px;
+        }
+
+        .new-folder-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .glass-input {
+            flex-grow: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            outline: none;
+            font-size: 14px;
+        }
+        
+        .glass-input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .glass-input:focus {
+            background: rgba(255,255,255,0.25);
+            border-color: #fff;
+        }
+
+        .action-btn {
+            padding: 0 20px;
+            background: #fff;
+            color: #6A5ACD;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .action-btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+
+    </style>
 </head>
 <body>
-    <div class="container" style="max-width: 600px; margin: 40px auto; text-align: center;">
-        <h2>"<?php echo htmlspecialchars($set['title']); ?>" setini hangi klasöre eklemek istersin?</h2>
-        
-        <div class="folder-list" style="margin-top: 20px;">
-            <?php if ($res_folders->num_rows > 0): ?>
-                <?php while($row = $res_folders->fetch_assoc()): ?>
-                    <a href="select_folder.php?set_id=<?php echo $set_id; ?>&add_to_folder=<?php echo $row['folder_id']; ?>" 
-                       style="display: block; background: #fff; border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px; text-decoration: none; color: #333; font-size: 18px;">
-                        📁 <?php echo htmlspecialchars($row['name']); ?>
-                    </a>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <p>Henüz hiç klasörün yok. Önce bir klasör oluşturmalısın.</p>
-                <a href="folders.php" class="btn" style="background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">+ Yeni Klasör Oluştur</a>
+    
+    <?php include "menu.php"; ?>
+
+    <div class="container">
+        <div class="glass-card">
+            
+            <a href="view_set.php?id=<?php echo $set_id; ?>" class="close-btn">✕</a>
+
+            <h2>Klasöre Ekle</h2>
+            <p class="sub-text">"<?php echo htmlspecialchars($set['title']); ?>" setini seçtiğin klasöre ekle.</p>
+            
+            <?php if(isset($success)): ?>
+                <div class="success-msg"><?= $success ?></div>
             <?php endif; ?>
+
+            <?php if(isset($error)): ?>
+                <div class="error-msg"><?= $error ?></div>
+            <?php endif; ?>
+
+            <div class="folder-list">
+                <?php if ($res_folders->num_rows > 0): ?>
+                    <?php while($row = $res_folders->fetch_assoc()): ?>
+                        <a href="select_folder.php?set_id=<?php echo $set_id; ?>&add_to_folder=<?php echo $row['folder_id']; ?>" class="folder-item">
+                            <span>📁 <?php echo htmlspecialchars($row['name']); ?></span>
+                            <span>+</span>
+                        </a>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <p style="color: #fff; font-style: italic; margin-bottom: 0;">Henüz klasörün yok.</p>
+                <?php endif; ?>
+            </div>
+
+            <div class="new-folder-area">
+                <p style="color:#fff; font-size:14px; margin-bottom:10px; text-align:left;">Veya yeni oluştur ve ekle:</p>
+                <form method="POST" class="new-folder-form">
+                    <input type="text" name="new_folder_name" class="glass-input" placeholder="Yeni Klasör Adı" required>
+                    <button type="submit" class="action-btn">Oluştur & Ekle</button>
+                </form>
+            </div>
+
         </div>
-        
-        <br>
-        <a href="view_set.php?id=<?php echo $set_id; ?>">İptal</a>
     </div>
+
 </body>
 </html>
