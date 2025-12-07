@@ -1,8 +1,6 @@
 <?php
 include "connectDB.php";
 include "session_check.php";
-// Menüyü dahil ediyoruz
-include "menu.php"; 
 
 if (!isset($_GET['id'])) {
     header("Location: folders.php");
@@ -64,32 +62,29 @@ $res_sets = $conn->query($sql_sets);
     <title><?php echo htmlspecialchars($folder['name']); ?> - Klasör</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* --- DÜZELTİLEN CSS --- */
         body {
             margin: 0;
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
             min-height: 100vh;
-            /* DÜZELTME: Menü ve içeriği alt alta dizmek için column yapıyoruz */
-            display: flex;
-            flex-direction: column; 
-            align-items: center;
-            /* Padding'i biraz kıstık çünkü menü yer kaplayacak */
-            padding: 0 20px 40px 20px; 
-            box-sizing: border-box;
+            /* Flex özelliklerini kaldırdık, blok akışına döndük */
+            display: block; 
         }
 
-        /* Menü dosyasının içeriğinin %100 genişlikte olmasını sağlamak için */
-        body > nav, body > header, .menu-container {
+        /* Menü için özel ayar (Gerekirse) */
+        .menu-wrapper {
             width: 100%;
-            z-index: 1000;
-            margin-bottom: 20px; /* Menü ile kart arası boşluk */
+            margin-bottom: 20px;
         }
 
         .container {
             width: 100%;
             max-width: 750px;
-            margin-top: 20px; /* Menüden biraz aşağıda başlasın */
-            flex: 1; 
+            /* Kartı ortalamak için margin auto kullanıyoruz */
+            margin: 40px auto; 
+            padding: 0 20px 40px 20px; /* Mobilde kenarlara yapışmasın */
+            box-sizing: border-box;
         }
 
         .glass-card {
@@ -118,6 +113,7 @@ $res_sets = $conn->query($sql_sets);
             text-decoration: none;
             font-size: 20px;
             transition: 0.3s;
+            z-index: 100; /* Buton önde dursun */
         }
         .close-page-btn:hover {
             background: white;
@@ -240,31 +236,30 @@ $res_sets = $conn->query($sql_sets);
             font-style: italic;
         }
 
-        /* YENİLENMİŞ SİLME BUTONU (X) */
         .remove-icon {
             position: absolute;
             top: 10px;
             right: 10px;
             width: 32px;
             height: 32px;
-            background: rgba(255, 255, 255, 0.5); /* Hafif şeffaf beyaz */
+            background: rgba(255, 255, 255, 0.5);
             backdrop-filter: blur(4px);
-            color: #ff4d4d; /* Kırmızı ikon */
+            color: #ff4d4d;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px; /* İkon biraz daha büyük */
+            font-size: 18px;
             text-decoration: none;
             border: 1px solid rgba(255,255,255,0.8);
             transition: all 0.3s ease;
-            z-index: 10; /* Kartın üzerinde kalsın */
+            z-index: 10;
         }
 
         .remove-icon:hover {
             background: #ff4d4d;
             color: white;
-            transform: rotate(90deg); /* Üzerine gelince dönme efekti */
+            transform: rotate(90deg);
             box-shadow: 0 4px 10px rgba(255, 77, 77, 0.3);
             border-color: #ff4d4d;
         }
@@ -280,6 +275,8 @@ $res_sets = $conn->query($sql_sets);
     </style>
 </head>
 <body>
+    
+    <?php include "menu.php"; ?>
 
     <div class="container">
         <div class="glass-card">
