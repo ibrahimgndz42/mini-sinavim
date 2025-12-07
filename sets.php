@@ -37,12 +37,6 @@ $result = $conn->query($sql);
     <title>Tüm Setler - Mini Sınavım</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
-            height: 100vh;
-        }
         .category-menu {
             margin-top: 20px;
             display: flex;
