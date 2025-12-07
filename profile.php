@@ -36,26 +36,24 @@ $res_folders = $conn->query($sql_folders);
             box-sizing: border-box;
         }
 
-        /* MENÜYÜ KAPLAYAN ALAN (Tam Genişlik) */
-        .menu-wrapper {
-            width: 100%;
-            margin-bottom: 30px;
+        html {
+            overflow-y: scroll; /* Kaydırma çubuğu alanını rezerve et */
         }
 
-        /* İÇERİĞİ ORTALAYAN KONTEYNER */
+        /* İÇERİK KONTEYNERİ */
         .container {
             width: 100%;
-            max-width: 1100px; /* İçerik çok yayılmasın */
-            margin: 0 auto;    /* Ortala */
-            padding: 0 20px 40px 20px; /* İç boşluklar burada */
+            max-width: 1200px; /* sets.php ile aynı genişlik */
+            margin: 20px auto; /* sets.php ile aynı üst boşluk */
+            padding: 0 20px 40px 20px;
         }
 
         /* CAM GÖRÜNÜMLÜ KART (Ortak Stil) */
         .glass-panel {
-            background: rgba(255, 255, 255, 0.35); /* Hafif şeffaf beyaz */
-            backdrop-filter: blur(12px); /* Buzlu cam efekti */
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.25); /* sets.php'deki opaklık */
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px; /* sets.php'deki yuvarlaklık */
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
@@ -69,7 +67,8 @@ $res_folders = $conn->query($sql_folders);
 
         .profile-header h1 {
             margin: 0 0 10px 0;
-            font-size: 32px;
+            font-size: 36px; /* sets.php başlık boyutu */
+            font-weight: 800;
             text-shadow: 0 2px 5px rgba(0,0,0,0.15);
         }
 
@@ -88,7 +87,7 @@ $res_folders = $conn->query($sql_folders);
             text-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: flex;
             align-items: center;
-            justify-content: space-between; /* Başlık ve linki iki yana at */
+            justify-content: space-between;
         }
 
         .section-title a {
@@ -98,60 +97,64 @@ $res_folders = $conn->query($sql_folders);
             font-weight: normal;
         }
 
-        /* IZGARA (GRID) YAPISI */
+        /* IZGARA (GRID) YAPISI - sets.php ile aynı */
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Responsive */
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
             margin-bottom: 50px;
         }
 
-        /* KART STİLLERİ (Set ve Klasörler için) */
+        /* KART STİLLERİ */
         .item-card {
-            background: rgba(255, 255, 255, 0.7); /* Biraz daha opak */
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.65); /* sets.php kart rengi */
+            border-radius: 16px;
             padding: 20px;
             text-decoration: none;
             color: #333;
-            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.5);
             display: flex;
             flex-direction: column;
-            min-height: 150px;
+            min-height: 160px;
         }
 
         .item-card:hover {
             transform: translateY(-5px);
             background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
 
         /* Kategori Etiketi */
         .category-badge {
             align-self: flex-start;
-            background: #8EC5FC;
+            background: #6A5ACD; /* sets.php badge rengi */
             color: white;
             padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 15px;
         }
 
         .card-title {
             font-size: 18px;
             font-weight: 700;
             color: #2c3e50;
-            margin: 0 0 8px 0;
+            margin: 0 0 10px 0;
         }
 
         .card-desc {
             font-size: 13px;
             color: #666;
             line-height: 1.4;
-            flex-grow: 1; /* Alanı doldur */
+            flex-grow: 1;
             margin-bottom: 10px;
+            /* Uzun metni kes */
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .card-footer {
@@ -172,24 +175,26 @@ $res_folders = $conn->query($sql_folders);
 
         .folder-card-content {
             text-align: center;
+            width: 100%;
         }
 
         /* Boş Durum Mesajı */
         .empty-msg {
             grid-column: 1 / -1;
             text-align: center;
-            padding: 30px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 12px;
-            color: white;
-            font-style: italic;
+            padding: 40px;
+            color: rgba(255,255,255,0.8);
+            font-size: 18px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            border: 1px dashed rgba(255,255,255,0.3);
         }
 
         /* Yeni Oluştur Butonu */
         .create-btn {
             display: inline-block;
             background: #fff;
-            color: #7b68ee;
+            color: #6A5ACD;
             padding: 12px 30px;
             border-radius: 30px;
             text-decoration: none;
@@ -206,9 +211,7 @@ $res_folders = $conn->query($sql_folders);
 </head>
 <body>
 
-    <div class="menu-wrapper">
-        <?php include "menu.php"; ?>
-    </div>
+    <?php include "menu.php"; ?>
 
     <div class="container">
         
@@ -220,7 +223,7 @@ $res_folders = $conn->query($sql_folders);
 
         <div class="section-title">
             <span>📝 Oluşturduğum Setler</span>
-            </div>
+        </div>
 
         <div class="grid-container">
             <?php if ($res_my_sets->num_rows > 0): ?>
@@ -237,7 +240,7 @@ $res_folders = $conn->query($sql_folders);
                         <div class="card-desc">
                             <?php 
                                 $desc = $row['description'];
-                                echo htmlspecialchars(mb_strlen($desc) > 50 ? mb_substr($desc, 0, 50) . "..." : $desc); 
+                                echo htmlspecialchars($desc); 
                             ?>
                         </div>
                         
@@ -267,7 +270,7 @@ $res_folders = $conn->query($sql_folders);
                         $count = $res_count->fetch_assoc()['cnt'];
                     ?>
                     
-                    <a href="view_folder.php?id=<?php echo $row['folder_id']; ?>" class="item-card" style="justify-content: center;">
+                    <a href="view_folder.php?id=<?php echo $row['folder_id']; ?>" class="item-card" style="align-items: center; justify-content: center;">
                         <div class="folder-card-content">
                             <span class="folder-icon">📁</span>
                             <h3 class="card-title"><?php echo htmlspecialchars($row['name']); ?></h3>

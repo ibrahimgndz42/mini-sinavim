@@ -37,7 +37,6 @@ if (count($conditions) > 0) {
 $sql .= " ORDER BY sets.created_at DESC";
 
 $result = $conn->query($sql);
-
 ?>
 
 <!DOCTYPE html>
@@ -47,199 +46,287 @@ $result = $conn->query($sql);
     <title>Tüm Setler - Mini Sınavım</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        /* TEMEL AYARLAR */
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            overflow-y: scroll; /* Kaydırma çubuğu alanını rezerve et */
+        }
+
+
+        /* İÇERİK KONTEYNERİ */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px auto; /* DÜZELTME: auto ile ortaladık */
+            padding: 0 20px 40px 20px; /* Kenar boşlukları */
+        }
+
+        /* CAM PANEL (HERO ALANI) */
+        .glass-hero {
+            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+
+        .glass-hero h1 {
+            font-size: 36px;
+            font-weight: 800;
+            color: #fff;
+            margin: 0 0 10px 0;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .glass-hero p {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0 0 30px 0;
+        }
+
+        /* ARAMA FORMU */
+        .search-form {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            padding: 12px 20px;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.6);
+            font-size: 16px;
+            outline: none;
+            color: #333;
+            transition: 0.3s;
+        }
+
+        .search-input:focus {
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.3);
+        }
+
+        .search-btn {
+            padding: 12px 25px;
+            border-radius: 30px;
+            border: none;
+            background: #6A5ACD;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(106, 90, 205, 0.3);
+            transition: 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #5a4db8;
+            transform: translateY(-2px);
+        }
+
+        .clear-btn {
+            padding: 12px 20px;
+            border-radius: 30px;
+            background: rgba(255,255,255,0.5);
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            transition: 0.3s;
+        }
+        .clear-btn:hover {
+            background: rgba(255,255,255,0.8);
+        }
+
+        /* KATEGORİ MENÜSÜ */
         .category-menu {
-            margin-top: 20px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 12px;
+            gap: 10px;
         }
 
-        .category-menu a {
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.8);
+        .category-btn {
+            padding: 8px 18px;
+            background: rgba(255, 255, 255, 0.4);
             border-radius: 20px;
             text-decoration: none;
             color: #333;
             font-size: 14px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            transition: background .2s, transform .2s;
+            font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.4);
+            transition: all 0.2s;
         }
 
-        .category-menu a:hover {
-            background: white;
+        .category-btn:hover {
+            background: #fff;
             transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        /* Aktif kategori */
         .category-active {
             background: #6A5ACD !important;
-            color: white !important;
-            font-weight: bold;
+            color: #fff !important;
+            border-color: #6A5ACD !important;
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(106, 90, 205, 0.4);
         }
 
-        .sets-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+        /* SET LİSTESİ (GRID) */
+        .sets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
-            padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
         }
+
+        /* SET KARTI */
         .set-card {
-            background: rgba(255,255,255,0.85);
+            background: rgba(255, 255, 255, 0.65);
             border-radius: 16px;
             padding: 20px;
-            width: 300px;
-            backdrop-filter: blur(6px);
-            border: 1px solid rgba(255,255,255,0.4);
+            border: 1px solid rgba(255,255,255,0.5);
             text-decoration: none;
-            color: #222;
+            color: #333;
+            transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            transition: transform .2s, box-shadow .2s;
+            min-height: 160px;
+            position: relative;
         }
 
         .set-card:hover {
-            transform: translateY(-6px);
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.95);
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
 
-        .set-title {
-            font-size: 20px;
+        .card-title {
+            font-size: 18px;
             font-weight: 700;
-            margin: 0;
-
+            color: #2c3e50;
+            margin: 0 0 10px 0;
+            /* Uzun başlıkları kırp */
             display: -webkit-box;
-            -webkit-line-clamp: 2;   /* En fazla 2 satır */
+            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-        }
-
-        .set-card h3 {
-            font-size: 22px;
-            font-weight: 700;
-            color: #2e2e2e;
-            margin: 0 0 10px 0;
         }
 
         .term-badge {
             align-self: flex-start;
             background: #6A5ACD;
-            padding: 5px 12px;
+            padding: 4px 10px;
             color: white;
-            font-size: 13px;
-            border-radius: 12px;
+            font-size: 12px;
+            border-radius: 8px;
             font-weight: 600;
+            margin-bottom: 15px;
         }
 
         .meta-row {
+            margin-top: auto; /* En alta it */
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
-            color: #555;
-        }
-
-        .creator {
-            font-weight: 600;
-        }
-
-        .date {
-            opacity: .8;
-        }
-
-        .set-card .meta {
-            font-size: 13px;
-            color: #555;
-            display: flex;
-            justify-content: space-between;
-            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid rgba(0,0,0,0.05);
             padding-top: 10px;
         }
 
-        .hero h1 {
-            font-size: 44px;
-            font-weight: 800;
-            color: white;
-            text-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
+        .creator { font-weight: 600; color: #444; }
+        .date { opacity: 0.8; }
 
-        .hero p {
-            color: white;
-            opacity: 0.9;
-            margin-top: 5px;
+        .empty-msg {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: rgba(255,255,255,0.8);
             font-size: 18px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            border: 1px dashed rgba(255,255,255,0.3);
         }
-        .hero {
-            padding: 30px;
-            backdrop-filter: blur(8px);
-            text-align: center; 
-        }
-
 
     </style>
 </head>
 <body>
 
-    <div class="hero" style="margin-top: 50px; margin-bottom: 30px;">
-        <h1 class="title" style="font-size: 40px;">Çalışma Setleri</h1>
-        <p class="subtitle" style="opacity: 1; animation: none;">Tüm kullanıcıların oluşturduğu setleri keşfet</p>
+    <div class="container">
         
-        <!-- Arama Formu -->
-        <form method="GET" action="sets.php" style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
-            <input type="text" name="q" placeholder="Set adı, açıklama veya kullanıcı ara..." value="<?php echo htmlspecialchars($search_query); ?>" style="padding: 10px 15px; width: 300px; border-radius: 20px; border: none; font-size: 16px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-            <?php if ($category_filter): ?>
-                <input type="hidden" name="category" value="<?php echo htmlspecialchars($category_filter); ?>">
-            <?php endif; ?>
-            <button type="submit" style="padding: 10px 20px; border-radius: 20px; border: none; background: #6A5ACD; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: background 0.2s;">Ara</button>
-            <?php if ($search_query): ?>
-                <a href="sets.php<?php echo $category_filter ? '?category=' . urlencode($category_filter) : ''; ?>" style="padding: 10px 15px; border-radius: 20px; background: rgba(255,255,255,0.8); text-decoration: none; color: #333; display: flex; align-items: center;">X</a>
-            <?php endif; ?>
-        </form>
-        
-        <?php
-        // Kategorileri çek
-        $catQuery = $conn->query("SELECT name FROM categories ORDER BY category_id ASC");
+        <div class="glass-hero">
+            <h1>Çalışma Setleri</h1>
+            <p>Tüm kullanıcıların oluşturduğu setleri keşfet</p>
+            
+            <form method="GET" action="sets.php" class="search-form">
+                <input type="text" name="q" class="search-input" placeholder="Set adı, açıklama veya kullanıcı ara..." value="<?php echo htmlspecialchars($search_query); ?>">
+                
+                <?php if ($category_filter): ?>
+                    <input type="hidden" name="category" value="<?php echo htmlspecialchars($category_filter); ?>">
+                <?php endif; ?>
+                
+                <button type="submit" class="search-btn">Ara</button>
+                
+                <?php if ($search_query): ?>
+                    <a href="sets.php<?php echo $category_filter ? '?category=' . urlencode($category_filter) : ''; ?>" class="clear-btn">✕</a>
+                <?php endif; ?>
+            </form>
+            
+            <?php
+            $catQuery = $conn->query("SELECT name FROM categories ORDER BY category_id ASC");
+            ?>
+            <div class="category-menu">
+                <a href="sets.php" class="category-btn <?php echo $category_filter == '' ? 'category-active' : ''; ?>">Tümü</a>
 
-        ?>
-        <div class="category-menu">
-            <a href="sets.php" class="<?php echo $category_filter == '' ? 'category-active' : ''; ?>">Tümü</a>
-
-            <?php while($cat = $catQuery->fetch_assoc()): ?>
-                <a href="sets.php?category=<?php echo urlencode($cat['name']); ?><?php echo $search_query ? '&q=' . urlencode($search_query) : ''; ?>"
-                class="<?php echo ($category_filter == $cat['name']) ? 'category-active' : ''; ?>">
-                    <?php echo htmlspecialchars($cat['name']); ?>
-                </a>
-            <?php endwhile; ?>
+                <?php while($cat = $catQuery->fetch_assoc()): ?>
+                    <a href="sets.php?category=<?php echo urlencode($cat['name']); ?><?php echo $search_query ? '&q=' . urlencode($search_query) : ''; ?>"
+                       class="category-btn <?php echo ($category_filter == $cat['name']) ? 'category-active' : ''; ?>">
+                        <?php echo htmlspecialchars($cat['name']); ?>
+                    </a>
+                <?php endwhile; ?>
+            </div>
         </div>
-    </div>
 
+        <div class="sets-grid">
+            <?php if ($result->num_rows > 0): ?>
+                <?php while($row = $result->fetch_assoc()): ?>
+                    
+                    <a href="view_set.php?id=<?php echo $row['set_id']; ?>" class="set-card">
+                        
+                        <h3 class="card-title"><?php echo htmlspecialchars($row['title']); ?></h3>
 
-    <div class="sets-container">
-        <?php if ($result->num_rows > 0): ?>
-            <?php while($row = $result->fetch_assoc()): ?>
-                <a href="view_set.php?id=<?php echo $row['set_id']; ?>" class="set-card">
+                        <div class="term-badge">
+                            <?php echo $row['card_count']; ?> terim
+                        </div>
 
-                    <h3 class="set-title"><?php echo htmlspecialchars($row['title']); ?></h3>
+                        <div class="meta-row">
+                            <span class="creator">👤 <?php echo htmlspecialchars($row['username']); ?></span>
+                            <span class="date"><?php echo date("d.m.Y", strtotime($row['created_at'])); ?></span>
+                        </div>
 
-                    <div class="term-badge">
-                        <?php echo $row['card_count']; ?> terim
-                    </div>
+                    </a>
 
-                    <div class="meta-row">
-                        <span class="creator">👤 <?php echo htmlspecialchars($row['username']); ?></span>
-                        <span class="date"><?php echo date("d.m.Y", strtotime($row['created_at'])); ?></span>
-                    </div>
+                <?php endwhile; ?>
+            <?php else: ?>
+                <div class="empty-msg">
+                    Aradığınız kriterlere uygun set bulunamadı. <br>
+                    İlk seti siz oluşturmak ister misiniz?
+                </div>
+            <?php endif; ?>
+        </div>
 
-                </a>
-
-
-            <?php endwhile; ?>
-        <?php else: ?>
-            <p>Henüz hiç set oluşturulmamış. İlk seti sen oluştur!</p>
-        <?php endif; ?>
     </div>
 
 </body>
