@@ -2,6 +2,10 @@
 include "session_check.php";
 include "connectDB.php";
 
+// Hata raporlamayı açalım (Geliştirme süreci için)
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 if (!isset($_GET['id'])) {
     echo "ID gerekli.";
     exit;
@@ -10,9 +14,23 @@ if (!isset($_GET['id'])) {
 $set_id = intval($_GET['id']);
 $user_id = $_SESSION['user_id'];
 
-// 1. Yetki Kontrolü ve Veri Çekme
-$sql = "SELECT * FROM sets WHERE set_id = $set_id";
+// ---------------------------------------------------------
+// 1. SET BİLGİLERİNİ VE KATEGORİ İSMİNİ ÇEKME
+// ---------------------------------------------------------
+// Kısaltmalar (s, c) kaldırıldı. Tablo adları uzun yazıldı.
+// HATA DÜZELTME: 'categories.id' yerine 'categories.category_id' deniyoruz.
+// Eğer tablonuzda sütun adı 'id' ise aşağıdaki 'category_id' yazan yeri 'id' yapın.
+$sql = "SELECT sets.*, categories.name AS category_name 
+        FROM sets 
+        LEFT JOIN categories ON sets.category_id = categories.category_id 
+        WHERE sets.set_id = $set_id";
+
 $result = $conn->query($sql);
+
+if (!$result) {
+    // SQL hatası varsa ekrana net bir şekilde basalım
+    die("Sorgu Hatası: " . $conn->error . " <br> (Lütfen categories tablosundaki ID sütununun adının 'category_id' mi yoksa 'id' mi olduğunu kontrol edin.)");
+}
 
 if ($result->num_rows == 0) {
     echo "Set bulunamadı.";
@@ -26,7 +44,9 @@ if ($set['user_id'] != $user_id) {
     exit;
 }
 
-// Kartları çek
+// ---------------------------------------------------------
+// 2. KARTLARI ÇEKME
+// ---------------------------------------------------------
 $sql_cards = "SELECT * FROM cards WHERE set_id = $set_id";
 $result_cards = $conn->query($sql_cards);
 $cards = [];
@@ -34,129 +54,483 @@ while($row = $result_cards->fetch_assoc()) {
     $cards[] = $row;
 }
 
+// ---------------------------------------------------------
+// 3. DROPDOWN İÇİN TÜM KATEGORİLERİ ÇEKME
+// ---------------------------------------------------------
+// Burada da kısaltma kullanmadan çekiyoruz
+$sql_cats = "SELECT * FROM categories ORDER BY name ASC"; 
+$result_cats = $conn->query($sql_cats);
 
-// 2. Form Gönderildiğinde Güncelleme
+if (!$result_cats) {
+    die("Kategori Sorgu Hatası: " . $conn->error);
+}
+
+$categories = [];
+while($row = $result_cats->fetch_assoc()) {
+    $categories[] = $row;
+}
+
+// ---------------------------------------------------------
+// 4. GÜNCELLEME İŞLEMİ (POST)
+// ---------------------------------------------------------
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $set_title = $_POST["set_title"];
-    $set_desc  = $_POST["set_desc"];
-    $category  = $_POST["category"];
+    $set_title = $conn->real_escape_string($_POST["set_title"]);
+    $set_desc  = $conn->real_escape_string($_POST["set_desc"]);
+    
+    // Formdan gelen kategori ID'sini alıyoruz
+    $category_id = intval($_POST["category_id"]); 
 
     // --- EN AZ 2 KART ZORUNLULUĞU ---
     $validCardCount = 0;
-    foreach ($_POST["term"] as $key => $term_text) {
-        $defination_text = $_POST["defination"][$key];
-        if (trim($term_text) == "" && trim($defination_text) == "") continue;
-        $validCardCount++;
+    if (isset($_POST["term"])) {
+        foreach ($_POST["term"] as $key => $term_text) {
+            $defination_text = $_POST["defination"][$key];
+            if (trim($term_text) !== "" && trim($defination_text) !== "") {
+                $validCardCount++;
+            }
+        }
     }
 
     if ($validCardCount < 2) {
         $error = "En az 2 kart eklemelisiniz!";
     } else {
         // A) Set bilgilerini güncelle
-        $sql_update = "UPDATE sets SET title='$set_title', description='$set_desc', category='$category' WHERE set_id=$set_id";
-        $conn->query($sql_update);
+        $sql_update = "UPDATE sets SET title='$set_title', description='$set_desc', category_id='$category_id' WHERE set_id=$set_id";
+        
+        if ($conn->query($sql_update) === TRUE) {
+            
+            // B) Kartları güncelle (Sil ve Ekle)
+            $conn->query("DELETE FROM cards WHERE set_id=$set_id");
 
-        // B) Kartları güncelle (Eskileri sil, yenileri ekle - Basit Yöntem)
-        $conn->query("DELETE FROM cards WHERE set_id=$set_id");
+            foreach ($_POST["term"] as $key => $term_text) {
+                $term_clean = $conn->real_escape_string($term_text);
+                $def_clean  = $conn->real_escape_string($_POST["defination"][$key]);
 
-        foreach ($_POST["term"] as $key => $term_text) {
-            $defination_text = $_POST["defination"][$key];
-            if (trim($term_text) == "" && trim($defination_text) == "") continue;
+                if (trim($term_clean) == "" && trim($def_clean) == "") continue;
 
-            $sql_insert = "INSERT INTO cards (set_id, front_text, back_text) VALUES ('$set_id', '$term_text', '$defination_text')";
-            $conn->query($sql_insert);
+                $sql_insert = "INSERT INTO cards (set_id, term, defination) VALUES ('$set_id', '$term_clean', '$def_clean')";
+                $conn->query($sql_insert);
+            }
+
+            $success = "Set başarıyla güncellendi! Yönlendiriliyorsunuz...";
+            
+        } else {
+            $error = "Güncelleme hatası: " . $conn->error;
         }
-
-        echo "<script>alert('Set güncellendi!'); window.location.href='view_set.php?id=$set_id';</script>";
-        exit;
     }
 }
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <title>Seti Düzenle</title>
-    <style>
-        .card-box { border: 1px solid #aaa; padding: 10px; margin-bottom: 10px; }
-        body { font-family: Arial, sans-serif; padding: 20px; }
-    </style>
-    <script>
-    function updateDeleteButtons() {
-        let cards = document.querySelectorAll(".card-box");
-        let deleteButtons = document.querySelectorAll(".delete-btn");
-        if (cards.length <= 2) {
-            deleteButtons.forEach(btn => btn.style.display = "none");
-        } else {
-            deleteButtons.forEach(btn => btn.style.display = "inline-block");
-        }
+<meta charset="UTF-8">
+<title>Seti Düzenle</title>
+<style>
+    /* CSS kodlarınız aynen kalıyor */
+    body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 40px;
+        padding-bottom: 40px;
     }
-    function addCardBox() {
-        let container = document.getElementById("cardsContainer");
-        let box = document.createElement("div");
-        box.className = "card-box";
-        box.innerHTML = `
-            <label>Ön Yüz:</label><br>
-            <input type="text" name="term[]" required><br><br>
-            <label>Arka Yüz:</label><br>
-            <input type="text" name="defination[]" required><br><br>
-            <button type="button" class="delete-btn" onclick="deleteCard(this)">Kartı Sil</button>
-        `;
-        container.appendChild(box);
-        updateDeleteButtons();
+    * { box-sizing: border-box; }
+
+    .create-container {
+        width: 100%;
+        max-width: 650px;
+        padding: 20px;
     }
-    function deleteCard(btn) {
-        btn.parentElement.remove();
-        updateDeleteButtons();
+
+    .glass-card {
+        backdrop-filter: blur(100px);
+        background: rgba(255, 255, 255, 0.10);
+        border-radius: 16px;
+        padding: 35px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        border: 1px solid rgba(255,255,255,0.3);
+        animation: fadeIn 0.6s ease;
     }
-    window.onload = updateDeleteButtons;
-    </script>
+
+    @keyframes fadeIn {
+        from {opacity:0; transform:translateY(20px);}
+        to   {opacity:1; transform:translateY(0);}
+    }
+
+    h2 {
+        text-align: center;
+        color: #fff;
+        margin-bottom: 20px;
+        font-size: 30px;
+    }
+
+    textarea.auto-expand {
+        overflow: hidden;
+        min-height: 40px;
+        resize: none;
+        background: rgba(255,255,255,0.1);
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.3);
+        color: #fff;
+        padding: 14px;
+        width: 100%;
+        font-size: 15px;
+        outline: none;
+    }
+
+    .input-wrapper {
+        position: relative;
+        margin-bottom: 25px;
+    }
+
+    .input-wrapper input,
+    .input-wrapper textarea,
+    .input-wrapper select {
+        width: 100%;
+        padding: 14px 14px;
+        border: 1px solid rgba(255,255,255,0.3);
+        background: rgba(255,255,255,0.10);
+        border-radius: 8px;
+        font-size: 15px;
+        color: #fff;
+        outline: none;
+        resize: none;
+        overflow: hidden;
+    }
+
+    .input-wrapper label {
+        position: absolute;
+        top: 50%;
+        left: 12px;
+        transform: translateY(-50%);
+        color: rgba(255,255,255,0.9);   
+        pointer-events: none;
+        transition: .2s ease;
+    }
+
+    .input-wrapper input:focus + label,
+    .input-wrapper input:not(:placeholder-shown) + label,
+    .input-wrapper textarea:focus + label,
+    .input-wrapper textarea:not(:placeholder-shown) + label {
+        top: -6px;
+        font-size: 12px;
+        color: #fff;
+        background: transparent; 
+    }
+
+    .focus-border {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 2px;
+        width: 0;
+        background: #fff;
+        transition: .3s;
+    }
+
+    .input-wrapper input:focus ~ .focus-border,
+    .input-wrapper textarea:focus ~ .focus-border {
+        width: 100%;
+    }
+
+    .card-number {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        font-weight: bold;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 14px;
+        pointer-events: none;
+    }
+
+    .card-box {
+        position: relative;
+        backdrop-filter: blur(25px);
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.35);
+        padding: 60px 22px 22px 22px;
+        border-radius: 14px;
+        margin-bottom: 18px;
+    }
+
+    .custom-select {
+        position: relative;
+        z-index: 1000;
+        cursor: pointer;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: #fff;
+        padding: 10px 12px;
+        user-select: none;
+    }
+    .custom-select .selected::after {
+        content: "▾";
+        float: right;
+    }
+    .custom-select ul.options {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(255,255,255,0.9); 
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.4);
+        color: #333; 
+        border-radius: 12px;
+        list-style: none;
+        padding: 0;
+        margin: 5px 0 0 0;
+        display: none;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1001;
+    }
+    .custom-select ul.options li {
+        padding: 10px 12px;
+        transition: background 0.2s;
+    }
+    .custom-select ul.options li:hover {
+        background: rgba(0,0,0,0.1);
+    }
+
+    .delete-btn {
+        background: #ff4d4d;
+        border: none;
+        padding: 10px;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        margin-top: 12px;
+        width: 100%;
+    }
+
+    .add-btn, .create-btn, .cancel-btn {
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .add-btn { background: #fff; color:#333; }
+    .create-btn { background:#fff; font-weight:bold; color: #333; margin-top: 20px;}
+    .cancel-btn { background:#ff4040; color:#fff; }
+
+    .success-msg, .error-msg {
+        padding: 12px;
+        border-radius: 10px;
+        text-align: center;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+    .success-msg {
+        background: rgba(0,255,150,0.25);
+        border: 1px solid rgba(0,255,150,0.4);
+        color:#003d18;
+    }
+    .error-msg {
+        background: rgba(255,0,0,0.25);
+        border: 1px solid rgba(255,0,0,0.4);
+        color:#ff1a1a;
+    }
+</style>
 </head>
+
 <body>
 
-<h2>Seti Düzenle</h2>
+<div class="create-container">
+<div class="glass-card">
 
-<?php if(isset($error)) echo "<p style='color:red;'>$error</p>"; ?>
+    <?php if(isset($success)): ?>
+        <p class="success-msg"><?= $success ?></p>
+        <script>
+            setTimeout(()=>{ window.location.href="view_set.php?id=<?= $set_id ?>"; }, 2000);
+        </script>
+    <?php else: ?>
 
-<form method="POST">
-    <label>Set Başlığı:</label><br>
-    <input type="text" name="set_title" value="<?php echo htmlspecialchars($set['title']); ?>" required><br><br>
+    <h2>Seti Düzenle</h2>
 
-    <label>Açıklama:</label><br>
-    <textarea name="set_desc"><?php echo htmlspecialchars($set['description']); ?></textarea><br><br>
+    <?php if(isset($error)): ?>
+        <p class="error-msg"><?= $error ?></p>
+    <?php endif; ?>
 
-    <label>Kategori:</label><br>
-    <select name="category">
-        <?php 
-        $cats = ["Genel", "Matematik", "Fen Bilimleri", "Yabancı Dil", "Tarih", "Edebiyat", "Yazılım", "Diğer"];
-        foreach($cats as $cat) {
-            $selected = ($set['category'] == $cat) ? 'selected' : '';
-            echo "<option value='$cat' $selected>$cat</option>";
-        }
-        ?>
-    </select><br><br>
+    <form method="POST">
 
-    <h3>Kartlar</h3>
-    <div id="cardsContainer">
-        <?php foreach($cards as $card): ?>
-        <div class="card-box">
-            <label>Ön Yüz:</label><br>
-            <input type="text" name="term[]" value="<?php echo htmlspecialchars($card['front_text']); ?>" required><br><br>
-
-            <label>Arka Yüz:</label><br>
-            <input type="text" name="defination[]" value="<?php echo htmlspecialchars($card['back_text']); ?>" required><br><br>
-
-            <button type="button" class="delete-btn" onclick="deleteCard(this)">Kartı Sil</button>
+        <div class="input-wrapper">
+            <textarea class="auto-expand" rows="1" name="set_title" required placeholder=" "><?= htmlspecialchars($set['title']) ?></textarea>
+            <label>Set Başlığı</label>
+            <span class="focus-border"></span>
         </div>
-        <?php endforeach; ?>
-    </div>
 
-    <button type="button" onclick="addCardBox()">+ Kart Ekle</button>
-    <br><br>
-    <button type="submit">Güncelle</button>
-    <a href="view_set.php?id=<?php echo $set_id; ?>">İptal</a>
-</form>
+        <div class="input-wrapper">
+            <textarea class="auto-expand" rows="1" name="set_desc" placeholder=" "><?= htmlspecialchars($set['description']) ?></textarea>
+            <label>Açıklama</label>
+            <span class="focus-border"></span>
+        </div>
+
+        <div class="input-wrapper">
+            <div class="custom-select" id="categorySelect">
+                <div class="selected"><?= htmlspecialchars($set['category_name'] ?? 'Kategori Seçiniz') ?></div>
+                <ul class="options">
+                    <?php foreach($categories as $cat): ?>
+                        <li data-value="<?= $cat['category_id'] ?? $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <input type="hidden" name="category_id" id="hiddenCategory" value="<?= htmlspecialchars($set['category_id'] ?? '') ?>">
+        </div>
+
+        <h3 style="color:white; text-align:center;">Kartlar</h3>
+
+        <div id="cardsContainer">
+            <?php foreach($cards as $index => $card): ?>
+            <div class="card-box">
+                <div class="input-wrapper">
+                    <input type="text" name="term[]" value="<?= htmlspecialchars($card['term'] ?? $card['term'] ?? '') ?>" placeholder=" " required>
+                    <label>Ön Yüz</label>
+                    <span class="focus-border"></span>
+                </div>
+
+                <div class="input-wrapper">
+                    <input type="text" name="defination[]" value="<?= htmlspecialchars($card['defination'] ?? $card['defination'] ?? '') ?>" placeholder=" " required>
+                    <label>Arka Yüz</label>
+                    <span class="focus-border"></span>
+                </div>
+
+                <button type="button" class="delete-btn">Kartı Sil</button>
+            </div>
+            <?php endforeach; ?>
+        </div>
+
+        <button type="button" class="add-btn" onclick="addCard()">+ Kart Ekle</button>
+        <button type="submit" class="create-btn">Güncelle</button>
+        <button type="button" class="cancel-btn" onclick="window.location.href='view_set.php?id=<?= $set_id ?>'">İptal</button>
+
+    </form>
+    <?php endif; ?>
+
+</div></div>
+
+<script>
+// --- Custom Select Logic ---
+const categorySelect = document.getElementById("categorySelect");
+const selected = categorySelect.querySelector(".selected");
+const optionsContainer = categorySelect.querySelector(".options");
+const hiddenInput = document.getElementById("hiddenCategory");
+
+selected.addEventListener("click", () => {
+    optionsContainer.style.display = optionsContainer.style.display === "block" ? "none" : "block";
+});
+
+optionsContainer.querySelectorAll("li").forEach(option => {
+    option.addEventListener("click", () => {
+        selected.textContent = option.textContent; 
+        hiddenInput.value = option.dataset.value;  
+        optionsContainer.style.display = "none";
+    });
+});
+
+document.addEventListener("click", (e) => {
+    if (!categorySelect.contains(e.target)) {
+        optionsContainer.style.display = "none";
+    }
+});
+
+// --- Auto Expand Textarea ---
+function autoExpandTextarea(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+}
+document.querySelectorAll('textarea.auto-expand').forEach(textarea => {
+    autoExpandTextarea(textarea);
+    textarea.addEventListener('input', () => autoExpandTextarea(textarea));
+});
+
+// --- Card Logic ---
+function updateCardNumbers() {
+    const cards = document.querySelectorAll("#cardsContainer .card-box");
+    cards.forEach((card, index) => {
+        let numberLabel = card.querySelector(".card-number");
+        if (!numberLabel) {
+            numberLabel = document.createElement("div");
+            numberLabel.className = "card-number";
+            card.appendChild(numberLabel);
+        }
+        numberLabel.textContent = (index + 1) + ". Kart";
+    });
+}
+
+function addCard() {
+    const container = document.getElementById("cardsContainer");
+    const box = document.createElement("div");
+    box.className = "card-box";
+    box.innerHTML = `
+        <div class="input-wrapper">
+            <input type="text" name="term[]" placeholder=" " required>
+            <label>Ön Yüz</label>
+            <span class="focus-border"></span>
+        </div>
+        <div class="input-wrapper">
+            <input type="text" name="defination[]" placeholder=" " required>
+            <label>Arka Yüz</label>
+            <span class="focus-border"></span>
+        </div>
+        <button type="button" class="delete-btn">Kartı Sil</button>
+    `;
+    container.appendChild(box);
+    
+    box.querySelector(".delete-btn").addEventListener("click", function() {
+        box.remove();
+        checkDeletes();
+        updateCardNumbers();
+    });
+
+    checkDeletes();
+    updateCardNumbers();
+}
+
+function attachDeleteListeners() {
+    const boxes = document.querySelectorAll("#cardsContainer .card-box");
+    boxes.forEach(box => {
+        const btn = box.querySelector(".delete-btn");
+        if(btn){
+            btn.onclick = function() {
+                 box.remove();
+                 checkDeletes();
+                 updateCardNumbers();
+            };
+        }
+    });
+}
+
+function checkDeletes() {
+    const boxes = document.querySelectorAll(".card-box");
+    const delBtns = document.querySelectorAll(".delete-btn");
+    if(boxes.length <= 2) {
+        delBtns.forEach(btn => btn.style.display = "none");
+    } else {
+        delBtns.forEach(btn => btn.style.display = "block");
+    }
+}
+
+// Başlatma
+attachDeleteListeners();
+updateCardNumbers();
+checkDeletes();
+
+</script>
 
 </body>
 </html>
