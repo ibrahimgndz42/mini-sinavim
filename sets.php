@@ -107,8 +107,12 @@ $result = $conn->query($sql);
             font-size: 20px;
             font-weight: 700;
             margin: 0;
-        }
 
+            display: -webkit-box;
+            -webkit-line-clamp: 2;   /* En fazla 2 satır */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
 
         .set-card h3 {
             font-size: 22px;
