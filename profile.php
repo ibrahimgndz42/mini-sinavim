@@ -223,6 +223,7 @@ $res_folders = $conn->query($sql_folders);
 
         <div class="section-title">
             <span>📝 Oluşturduğum Setler</span>
+            <a href="my_sets.php">Yönet & Düzenle</a>
         </div>
 
         <div class="grid-container">
