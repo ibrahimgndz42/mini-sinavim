@@ -96,7 +96,7 @@ while($row = $result_cards->fetch_assoc()) {
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             border: 1px solid rgba(255,255,255,0.5);
             animation: fadeIn 0.6s ease;
-            box-sizing: border-box; /* Padding'in taşmasını önler */
+            box-sizing: border-box; 
         }
 
         @keyframes fadeIn {
@@ -107,41 +107,36 @@ while($row = $result_cards->fetch_assoc()) {
         .view-wrapper h1 {
             margin-bottom: 10px;
             text-align: center;
-            /* TAŞMAYI ENGELLEYEN KODLAR */
-            word-wrap: break-word;      /* Eski tarayıcılar için */
-            overflow-wrap: break-word;  /* Modern standart */
-            word-break: break-word;     /* Uzun kelimeleri satır sonunda kırar */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
         
         .view-wrapper p {
             color: #555;
             text-align: center;
             margin-bottom: 20px;
-            /* TAŞMAYI ENGELLEYEN KODLAR */
             word-wrap: break-word;
             overflow-wrap: break-word;
             word-break: break-word;
         }
 
-        /* --- FLASHCARD ALANI (ORTALAMA VE 3D) --- */
-        
-        /* Kartın içinde durduğu görünmez kutu */
+        /* --- FLASHCARD ALANI --- */
         .flashcard-container {
             display: flex;
-            justify-content: center; /* Yatayda ortalar */
-            align-items: center;     /* Dikeyde ortalar */
-            perspective: 1000px;     /* 3D derinlik efekti */
-            margin: 40px 0;          /* Alttan ve üstten boşluk */
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+            margin: 40px 0;
         }
 
-        /* Kartın kendisi */
         .flashcard {
             width: 100%;
-            max-width: 600px;        /* Kartın maksimum genişliği */
-            height: 350px;           /* Kartın yüksekliği */
+            max-width: 600px;
+            height: 350px;
             position: relative;
-            transform-style: preserve-3d; /* Çocuk elementler 3D düzlemde kalsın */
-            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); /* Yumuşak dönüş */
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
             cursor: pointer;
         }
 
@@ -149,13 +144,12 @@ while($row = $result_cards->fetch_assoc()) {
             transform: rotateY(180deg);
         }
 
-        /* Ön ve Arka Yüz Ortak Özellikler */
         .flashcard-face {
             position: absolute;
             width: 100%;
             height: 100%;
-            backface-visibility: hidden; /* Kart döndüğünde arkasını gizle */
-            -webkit-backface-visibility: hidden; /* Safari desteği */
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -166,34 +160,29 @@ while($row = $result_cards->fetch_assoc()) {
             box-sizing: border-box;
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            overflow-y: auto; /* Dikeyde taşarsa scroll çıkar */
-            
-            /* Kart içindeki uzun kelimeleri de kırmak için */
+            overflow-y: auto;
             word-wrap: break-word;
             overflow-wrap: break-word;
             word-break: break-word;
         }
 
-        /* Ön Yüz */
         .flashcard-front {
             background-color: #ffffff;
             color: #333;
             z-index: 2;
         }
 
-        /* Arka Yüz */
         .flashcard-back {
-            background-color: #2c3e50; /* Koyu lacivert/gri ton */
+            background-color: #2c3e50;
             color: #fff;
-            transform: rotateY(180deg); /* Başlangıçta arkası dönük olsun */
+            transform: rotateY(180deg);
         }
 
-        /* --- KONTROLLER --- */
         .controls {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 15px; /* Butonlar arası boşluk */
+            gap: 15px;
             margin-bottom: 40px;
         }
 
@@ -221,21 +210,98 @@ while($row = $result_cards->fetch_assoc()) {
             border-radius: 5px;
         }
 
-        /* --- YORUM ALANI --- */
+        /* --- YORUM ALANI (GLASS KART TASARIMI) --- */
         .comments-area {
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            /* Şeffaf yapıldı, kartlar üzerinde duracak */
+            background: transparent; 
+            padding: 20px 0;
+        }
+
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Kartlar arası boşluk */
         }
         
-        .comment-box {
-            border-bottom: 1px solid #eee;
-            padding: 15px 0;
-            /* Yorumlarda da taşmayı önleyelim */
+        /* Her bir yorum kartı */
+        .comment-card {
+            background: rgba(255, 255, 255, 0.45); /* Hafif beyaz cam */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            
+            /* Metin taşmasını önle */
             word-wrap: break-word;
             overflow-wrap: break-word;
         }
+
+        .comment-card:hover {
+            transform: translateY(-2px); /* Hafif yukarı kalkma */
+            background: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .comment-author {
+            font-weight: bold;
+            color: #333;
+            font-size: 15px;
+        }
+
+        .comment-date {
+            color: #777;
+            font-size: 12px;
+        }
+
+        .comment-content {
+            color: #444;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .comment-actions a {
+            text-decoration: none;
+            font-size: 12px;
+            margin-left: 10px;
+            transition: 0.2s;
+        }
+        
+        .comment-actions a:hover {
+            text-decoration: underline;
+        }
+
+        /* Yorum Yazma Alanı */
+        .new-comment-box textarea {
+            width: 100%;
+            height: 80px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.5);
+            border-radius: 12px;
+            resize: none; /* Boyutlandırma kapalı */
+            outline: none;
+            backdrop-filter: blur(5px);
+            font-family: inherit;
+        }
+
+        .new-comment-box textarea:focus {
+            background: rgba(255,255,255,0.8);
+            border-color: #fff;
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+        }
+
     </style>
 </head>
 <body>
@@ -286,17 +352,19 @@ while($row = $result_cards->fetch_assoc()) {
 
 
     <div class="comments-area">
-        <h3>Yorumlar</h3>
+        <h3 style="margin-bottom: 15px; color: #444;">Yorumlar</h3>
 
         <?php if ($current_user_id > 0): ?>
-            <form method="POST" style="margin-bottom: 20px;">
-                <textarea name="comment" placeholder="Bu set hakkında bir şeyler yaz..." required style="width: 100%; height: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; resize: vertical;"></textarea>
-                <div style="text-align: right; margin-top: 5px;">
-                    <button type="submit" name="submit_comment" style="padding: 8px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Yorum Yap</button>
-                </div>
-            </form>
+            <div class="new-comment-box" style="margin-bottom: 30px;">
+                <form method="POST">
+                    <textarea name="comment" placeholder="Bu set hakkında bir şeyler yaz..." required></textarea>
+                    <div style="text-align: right; margin-top: 8px;">
+                        <button type="submit" name="submit_comment" style="padding: 10px 25px; background: #6A5ACD; color: white; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(106, 90, 205, 0.3);">Yorum Yap</button>
+                    </div>
+                </form>
+            </div>
         <?php else: ?>
-            <p><i>Yorum yapmak için <a href="login.php">giriş yapmalısın</a>.</i></p>
+            <p style="margin-bottom: 20px;"><i>Yorum yapmak için <a href="login.php">giriş yapmalısın</a>.</i></p>
         <?php endif; ?>
 
         <div class="comments-list">
@@ -308,16 +376,19 @@ while($row = $result_cards->fetch_assoc()) {
             ?>
             <?php if ($res_comments->num_rows > 0): ?>
                 <?php while($com = $res_comments->fetch_assoc()): ?>
-                    <div class="comment-box">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    
+                    <div class="comment-card">
+                        
+                        <div class="comment-header">
                             <div>
-                                <strong style="color: #333;"><?php echo htmlspecialchars($com['username']); ?></strong> 
-                                <span style="color: #999; font-size: 12px; margin-left: 10px;"><?php echo date("d.m.Y H:i", strtotime($com['created_at'])); ?></span>
+                                <span class="comment-author"><?php echo htmlspecialchars($com['username']); ?></span>
+                                <span class="comment-date">• <?php echo date("d.m.Y H:i", strtotime($com['created_at'])); ?></span>
                             </div>
+
                             <?php if ($current_user_id == $com['user_id']): ?>
-                                <div style="font-size: 12px;">
-                                    <a href="view_set.php?id=<?php echo $set_id; ?>&edit_comment=<?php echo $com['comment_id']; ?>" style="text-decoration: none; color: blue; margin-right: 5px;">✏️ Düzenle</a>
-                                    <a href="view_set.php?id=<?php echo $set_id; ?>&delete_comment=<?php echo $com['comment_id']; ?>" onclick="return confirm('Silmek istediğine emin misin?');" style="text-decoration: none; color: red;">🗑️ Sil</a>
+                                <div class="comment-actions">
+                                    <a href="view_set.php?id=<?php echo $set_id; ?>&edit_comment=<?php echo $com['comment_id']; ?>" style="color: #4a90e2;">✏️ Düzenle</a>
+                                    <a href="view_set.php?id=<?php echo $set_id; ?>&delete_comment=<?php echo $com['comment_id']; ?>" onclick="return confirm('Silmek istediğine emin misin?');" style="color: #e74c3c;">🗑️ Sil</a>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -328,19 +399,24 @@ while($row = $result_cards->fetch_assoc()) {
                         ?>
                             <form method="POST">
                                 <input type="hidden" name="edit_comment_id" value="<?php echo $com['comment_id']; ?>">
-                                <textarea name="edit_comment_text" style="width: 100%; height: 60px; padding: 5px;"><?php echo htmlspecialchars($com['comment_text']); ?></textarea>
-                                <div style="margin-top: 5px;">
-                                    <button type="submit" name="update_comment_submit" style="padding: 4px 10px; background: #28a745; color: white; border: none; border-radius: 3px; cursor: pointer;">Kaydet</button>
-                                    <a href="view_set.php?id=<?php echo $set_id; ?>" style="color: #666; margin-left: 10px; font-size: 13px;">İptal</a>
+                                <textarea name="edit_comment_text" style="width: 100%; height: 60px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; resize: none;"><?php echo htmlspecialchars($com['comment_text']); ?></textarea>
+                                <div style="margin-top: 8px;">
+                                    <button type="submit" name="update_comment_submit" style="padding: 5px 15px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">Kaydet</button>
+                                    <a href="view_set.php?id=<?php echo $set_id; ?>" style="color: #666; margin-left: 10px; font-size: 13px; text-decoration: none;">İptal</a>
                                 </div>
                             </form>
                         <?php else: ?>
-                            <p style="margin: 0; color: #555; line-height: 1.5;"><?php echo nl2br(htmlspecialchars($com['comment_text'])); ?></p>
+                            <div class="comment-content">
+                                <?php echo nl2br(htmlspecialchars($com['comment_text'])); ?>
+                            </div>
                         <?php endif; ?>
+                        
                     </div>
-                <?php endwhile; ?>
+                    <?php endwhile; ?>
             <?php else: ?>
-                <p style="color: #777; text-align: center;">Henüz hiç yorum yapılmamış. İlk yorumu sen yap!</p>
+                <div class="comment-card" style="text-align: center; color: #777; font-style: italic;">
+                    Henüz hiç yorum yapılmamış. İlk yorumu sen yap!
+                </div>
             <?php endif; ?>
         </div>
     </div> 
@@ -358,15 +434,13 @@ while($row = $result_cards->fetch_assoc()) {
     function updateCard() {
         if (cards.length === 0) return;
         
-        // Animasyonu sıfırla (eğer arka yüz çevriliyse öne döndür)
         flashcard.classList.remove("flipped");
         
-        // İçeriği güncelle (yarım saniye bekle ki kart dönerken içerik değişmesin, dönüş bitince değişsin)
         setTimeout(() => {
             front.textContent = cards[currentIndex].term;
             back.textContent = cards[currentIndex].defination;
             counter.textContent = (currentIndex + 1) + " / " + cards.length;
-        }, 150); // 150ms gecikme anlık değişimden daha doğal durur
+        }, 150);
     }
 
     function flipCard() {
@@ -374,7 +448,6 @@ while($row = $result_cards->fetch_assoc()) {
     }
 
     function nextCard() {
-        // Olay yayılımını durdurmaya gerek yok çünkü butonlar kartın dışında
         if (currentIndex < cards.length - 1) {
             currentIndex++;
             updateCard();
@@ -388,7 +461,6 @@ while($row = $result_cards->fetch_assoc()) {
         }
     }
 
-    // Başlangıç
     updateCard();
 </script>
 
