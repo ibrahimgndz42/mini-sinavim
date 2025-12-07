@@ -96,6 +96,7 @@ while($row = $result_cards->fetch_assoc()) {
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             border: 1px solid rgba(255,255,255,0.5);
             animation: fadeIn 0.6s ease;
+            box-sizing: border-box; /* Padding'in taşmasını önler */
         }
 
         @keyframes fadeIn {
@@ -106,12 +107,20 @@ while($row = $result_cards->fetch_assoc()) {
         .view-wrapper h1 {
             margin-bottom: 10px;
             text-align: center;
+            /* TAŞMAYI ENGELLEYEN KODLAR */
+            word-wrap: break-word;      /* Eski tarayıcılar için */
+            overflow-wrap: break-word;  /* Modern standart */
+            word-break: break-word;     /* Uzun kelimeleri satır sonunda kırar */
         }
         
         .view-wrapper p {
             color: #555;
             text-align: center;
             margin-bottom: 20px;
+            /* TAŞMAYI ENGELLEYEN KODLAR */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
 
         /* --- FLASHCARD ALANI (ORTALAMA VE 3D) --- */
@@ -157,7 +166,12 @@ while($row = $result_cards->fetch_assoc()) {
             box-sizing: border-box;
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            overflow-y: auto; /* Yazı çok uzunsa kaydırma çubuğu çıkar */
+            overflow-y: auto; /* Dikeyde taşarsa scroll çıkar */
+            
+            /* Kart içindeki uzun kelimeleri de kırmak için */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
 
         /* Ön Yüz */
@@ -218,6 +232,9 @@ while($row = $result_cards->fetch_assoc()) {
         .comment-box {
             border-bottom: 1px solid #eee;
             padding: 15px 0;
+            /* Yorumlarda da taşmayı önleyelim */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
     </style>
 </head>
