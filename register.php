@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <label for="username">Kullanıcı Adı:</label>
         <input type="text" name="username" id="username" placeholder="Kullanıcı adı" required>
         <br><br>
-        <label for="username">Şifre Yeni:</label>
+        <label for="username">Şifre:</label>
         <input type="password" name="password" id="password" placeholder="Şifre" required>
         <br><br>
         <button type="submit">Kaydol</button>
