@@ -193,7 +193,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <script>
                 setTimeout(() => {
                     window.location.href = "login.php";
-                }, 10000);
+                }, 3000);
             </script>
         <?php endif; ?>
 
