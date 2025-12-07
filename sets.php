@@ -4,6 +4,7 @@ include "menu.php";
 
 // Setleri ve oluşturan kullanıcı adlarını çekiyoruz
 $category_filter = isset($_GET['category']) ? $_GET['category'] : '';
+$search_query = isset($_GET['q']) ? trim($_GET['q']) : '';
 
 $sql = "SELECT 
             sets.set_id, 
@@ -17,11 +18,20 @@ $sql = "SELECT
         JOIN users ON sets.user_id = users.user_id
         JOIN categories ON sets.category_id = categories.category_id";
 
-
+$conditions = [];
 
 if ($category_filter) {
-    $safe_filter = $conn->real_escape_string($category_filter);
-    $sql .= " WHERE categories.name = '$safe_filter'";
+    $safe_category = $conn->real_escape_string($category_filter);
+    $conditions[] = "categories.name = '$safe_category'";
+}
+
+if ($search_query) {
+    $safe_search = $conn->real_escape_string($search_query);
+    $conditions[] = "(sets.title LIKE '%$safe_search%' OR sets.description LIKE '%$safe_search%' OR users.username LIKE '%$safe_search%')";
+}
+
+if (count($conditions) > 0) {
+    $sql .= " WHERE " . implode(' AND ', $conditions);
 }
 
 $sql .= " ORDER BY sets.created_at DESC";
@@ -177,6 +187,18 @@ $result = $conn->query($sql);
         <h1 class="title" style="font-size: 40px;">Çalışma Setleri</h1>
         <p class="subtitle" style="opacity: 1; animation: none;">Tüm kullanıcıların oluşturduğu setleri keşfet</p>
         
+        <!-- Arama Formu -->
+        <form method="GET" action="sets.php" style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+            <input type="text" name="q" placeholder="Set adı, açıklama veya kullanıcı ara..." value="<?php echo htmlspecialchars($search_query); ?>" style="padding: 10px 15px; width: 300px; border-radius: 20px; border: none; font-size: 16px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <?php if ($category_filter): ?>
+                <input type="hidden" name="category" value="<?php echo htmlspecialchars($category_filter); ?>">
+            <?php endif; ?>
+            <button type="submit" style="padding: 10px 20px; border-radius: 20px; border: none; background: #6A5ACD; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: background 0.2s;">Ara</button>
+            <?php if ($search_query): ?>
+                <a href="sets.php<?php echo $category_filter ? '?category=' . urlencode($category_filter) : ''; ?>" style="padding: 10px 15px; border-radius: 20px; background: rgba(255,255,255,0.8); text-decoration: none; color: #333; display: flex; align-items: center;">X</a>
+            <?php endif; ?>
+        </form>
+        
         <?php
         // Kategorileri çek
         $catQuery = $conn->query("SELECT name FROM categories ORDER BY category_id ASC");
@@ -186,7 +208,7 @@ $result = $conn->query($sql);
             <a href="sets.php" class="<?php echo $category_filter == '' ? 'category-active' : ''; ?>">Tümü</a>
 
             <?php while($cat = $catQuery->fetch_assoc()): ?>
-                <a href="sets.php?category=<?php echo urlencode($cat['name']); ?>"
+                <a href="sets.php?category=<?php echo urlencode($cat['name']); ?><?php echo $search_query ? '&q=' . urlencode($search_query) : ''; ?>"
                 class="<?php echo ($category_filter == $cat['name']) ? 'category-active' : ''; ?>">
                     <?php echo htmlspecialchars($cat['name']); ?>
                 </a>
