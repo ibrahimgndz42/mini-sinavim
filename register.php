@@ -76,6 +76,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             to { opacity: 1; transform: translateY(0); }
         }
 
+        .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 18px;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.25s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.55);
+            transform: scale(1.1);
+        }
+
         .login-header {
             text-align: center;
             margin-bottom: 25px;
@@ -191,6 +215,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <?php if(!isset($success)): ?>
         <div class="login-header">
+            <button class="close-btn" onclick="history.back()">✕</button>
             <h2>Hesap Oluştur</h2>
             <p>Yeni bir hesap oluşturun</p>
         </div>
