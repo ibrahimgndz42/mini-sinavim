@@ -121,7 +121,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         font-family: 'Inter', sans-serif;
         background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
         min-height: 100vh;
-        /* DÜZELTME: Flex yapısı kaldırıldı, böylece menü yukarıda düzgün duracak */
     }
     * { box-sizing: border-box; }
 
@@ -129,7 +128,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         width: 100%;
         max-width: 650px;
         padding: 20px;
-        /* DÜZELTME: Formu ortalamak için margin auto eklendi */
         margin: 40px auto;
     }
 
@@ -290,6 +288,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         background: rgba(0,0,0,0.1);
     }
 
+    /* DÜZELTME: width: 100% kaldırıldı */
     .delete-btn {
         background: #ff4d4d;
         border: none;
@@ -298,7 +297,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         color: white;
         cursor: pointer;
         margin-top: 12px;
-        width: 100%;
+        /* width: 100%;  <-- BU SATIR SİLİNDİ */
     }
 
     .add-btn, .create-btn, .cancel-btn {
@@ -511,11 +510,10 @@ function attachDeleteListeners() {
 function checkDeletes() {
     const boxes = document.querySelectorAll(".card-box");
     const delBtns = document.querySelectorAll(".delete-btn");
-    // İstersen burada limiti 1 veya 0 yapabilirsin, şimdilik 2 kart kuralı var.
     if(boxes.length <= 2) {
         delBtns.forEach(btn => btn.style.display = "none");
     } else {
-        delBtns.forEach(btn => btn.style.display = "block");
+        delBtns.forEach(btn => btn.style.display = "block"); // Burada block olması, inline gibi davranmasını engellemez, genişlik kalktığı için sorun yok.
     }
 }
 
