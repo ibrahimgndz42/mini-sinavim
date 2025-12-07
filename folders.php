@@ -2,7 +2,6 @@
 session_start();
 include "connectDB.php";
 include "session_check.php";
-include "menu.php"; 
 
 $user_id = $_SESSION['user_id'];
 
@@ -32,34 +31,23 @@ $result = $conn->query($sql_folders);
     <title>Klasörlerim - Mini Sınavım</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* --- DÜZELTİLEN CSS --- */
         body {
             margin: 0;
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
             min-height: 100vh;
-            /* DÜZELTME: Menü ve içeriği alt alta dizmek için column yapıyoruz */
-            display: flex;
-            flex-direction: column; 
-            align-items: center;
-            /* Padding'i biraz kıstık çünkü menü yer kaplayacak */
-            padding: 0 20px 40px 20px; 
-            box-sizing: border-box;
-        }
-
-        /* Menü dosyasının içeriğinin %100 genişlikte olmasını sağlamak için */
-        /* Eğer menu.php içinde nav veya div varsa bu kural onları kapsar */
-        body > nav, body > header, .menu-container {
-            width: 100%;
-            z-index: 1000;
-            margin-bottom: 20px; /* Menü ile kart arası boşluk */
+            /* Flex özelliklerini kaldırdık, blok akışına döndük */
+            display: block; 
         }
 
         .container {
             width: 100%;
             max-width: 900px;
-            /* Menü üstte olduğu için biraz aşağı itelim */
-            margin-top: 20px; 
-            flex: 1; /* Sayfa içeriğini doldur */
+            /* Kartı ortalamak için margin auto kullanıyoruz */
+            margin: 40px auto; 
+            padding: 0 20px 40px 20px; /* Mobilde kenarlara yapışmasın */
+            box-sizing: border-box;
         }
 
         /* Ana Cam Panel */
@@ -205,6 +193,8 @@ $result = $conn->query($sql_folders);
     </style>
 </head>
 <body>
+
+    <?php include "menu.php"; ?>
 
     <div class="container">
         <div class="glass-card">
