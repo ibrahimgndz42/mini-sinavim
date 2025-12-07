@@ -1,4 +1,6 @@
 <?php
+// Oturumu başlatıyoruz ki kayıt olunca otomatik giriş yapmış sayılsın
+session_start(); 
 include 'connectDB.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -9,9 +11,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         $sql = "INSERT INTO users (username, email, password) 
                 VALUES ('$username', '$email', '$password')";
-        $conn->query($sql);
+        
+        if ($conn->query($sql)) {
+            // Kayıt başarılı ise, yeni oluşan kullanıcının ID'sini al
+            $new_user_id = $conn->insert_id;
 
-        $success = "Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...";
+            // OTOMATİK GİRİŞ İŞLEMİ:
+            $_SESSION['user_id'] = $new_user_id;
+            $_SESSION['username'] = $username; // İstersen kullanıcı adını da tutabilirsin
+
+            $success = "Kayıt başarılı! Ana sayfaya yönlendiriliyorsunuz...";
+        }
 
     } catch (mysqli_sql_exception $e) {
 
@@ -37,6 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kayıt Ol</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         body {
@@ -127,6 +138,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .input-wrapper input {
             width: 100%;
             padding: 14px 16px;
+            padding-right: 40px; 
             border: 1px solid rgba(255,255,255,0.4);
             background: rgba(255,255,255,0.15);
             border-radius: 8px;
@@ -165,6 +177,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .input-wrapper input:focus ~ .focus-border {
             width: 100%;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.7);
+            transition: color 0.3s;
+            z-index: 10;
+        }
+
+        .toggle-password:hover {
+            color: #fff;
         }
 
         .login-btn {
@@ -226,7 +253,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <script>
                 setTimeout(() => {
-                    window.location.href = "login.php";
+                    // DEĞİŞİKLİK BURADA: login.php yerine index.php
+                    window.location.href = "index.php";
                 }, 3000);
             </script>
         <?php endif; ?>
@@ -254,6 +282,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input type="password" id="password" name="password" required placeholder=" ">
                 <label for="password">Şifre</label>
                 <span class="focus-border"></span>
+                <i class="fa-solid fa-eye toggle-password" onclick="togglePassword()"></i>
             </div>
 
             <button type="submit" class="login-btn">Kaydol</button>
@@ -263,6 +292,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </div>
 
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const icon = document.querySelector('.toggle-password');
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+</script>
 
 </body>
 </html>
