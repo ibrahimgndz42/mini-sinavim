@@ -53,6 +53,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             width: 100%;
             max-width: 420px;
             padding: 20px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
         }
 
         .login-card {
@@ -63,6 +66,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             box-shadow: 0 8px 32px rgba(0,0,0,0.15);
             border: 1px solid rgba(255,255,255,0.3);
             animation: fadeIn 0.6s ease;
+            margin: 0 auto; 
+            width: 100%;
+            max-width: 420px;
         }
 
         @keyframes fadeIn {
@@ -89,18 +95,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .input-wrapper {
             position: relative;
+            display: flex;
             margin-bottom: 25px;
+            align-items: center;
         }
 
         .input-wrapper input {
             width: 100%;
-            padding: 14px 12px;
+            padding: 14px 16px;
             border: 1px solid rgba(255,255,255,0.4);
             background: rgba(255,255,255,0.15);
             border-radius: 8px;
             font-size: 15px;
             color: #fff;
             outline: none;
+            max-width: 100%
         }
 
         .input-wrapper label {
