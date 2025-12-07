@@ -7,17 +7,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mini Sınavım - Hoşgeldiniz</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
+    <link rel="stylesheet" href="style.css">
     <style>
+        /* FIX: Sayfalar arası geçişte menü zıplamasını önlemek için */
+        html {
+            overflow-y: scroll; /* Kaydırma çubuğu alanını her zaman rezerve et */
+        }
+
+        /* FIX: Tüm elemanların boyut hesaplamasını standartlaştırır */
+        * {
+            box-sizing: border-box;
+        }
+
         /* Genel Sayfa Yapısı */
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column; /* Menü üstte, içerik altta olsun diye */
+
+
+        /* Menünün genişliğini garantiye alalım */
+        body > nav, .menu-container {
+            width: 100%;
         }
 
         /* İçeriği Ortalamak için Kapsayıcı */
@@ -27,6 +34,7 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            width: 100%;
         }
 
         /* Buzlu Cam Kart Tasarımı */
@@ -159,12 +167,12 @@
                 textElement.style.opacity = 1;
                 // Sıradaki index'e geç
                 index = (index + 1) % texts.length;
-            }, 500); // CSS transition süresiyle (0.5s) uyumlu olması için 500ms bekletiyoruz
+            }, 500); 
         }
 
         // İlk açılışta hemen çalıştır
         changeText();
-        // Her 4 saniyede bir değiştir (Okunabilirlik için süreyi biraz azalttım, 10sn çok uzun olabilir)
+        // Her 4 saniyede bir değiştir
         setInterval(changeText, 4000);
     </script>
 
