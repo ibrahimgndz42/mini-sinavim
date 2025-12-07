@@ -1,25 +1,142 @@
 <?php include "menu.php"; ?>
 
-
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+<html lang="tr">
 <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Welcome Page</title>
-        <link rel="stylesheet" type="text/css"  href="style.css">
- 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Sınavım - Hoşgeldiniz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Genel Sayfa Yapısı */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column; /* Menü üstte, içerik altta olsun diye */
+        }
+
+        /* İçeriği Ortalamak için Kapsayıcı */
+        .hero-container {
+            flex: 1; /* Kalan boşluğu doldur */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Buzlu Cam Kart Tasarımı */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(15px); /* Buzlu cam efekti */
+            -webkit-backdrop-filter: blur(15px); /* Safari desteği */
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 50px 40px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            animation: floatIn 1s ease-out;
+        }
+
+        /* Başlık Stili */
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 0 10px 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            letter-spacing: -1px;
+        }
+
+        /* Değişen Alt Başlık Stili */
+        .subtitle {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 40px;
+            min-height: 30px; /* Metin değişirken zıplamayı önler */
+            font-weight: 400;
+            transition: opacity 0.5s ease-in-out; /* Yumuşak geçiş efekti */
+        }
+
+        /* Buton Grubu */
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Beyaz Buton */
+        .btn-white {
+            background-color: #fff;
+            color: #7b68ee; /* Tema rengine uygun morumsu */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-white:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            background-color: #f8f9fa;
+        }
+
+        /* Şeffaf/Outline Buton */
+        .btn-outline {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.6);
+            color: #fff;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: #fff;
+            transform: translateY(-3px);
+        }
+
+        /* Animasyonlar */
+        @keyframes floatIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobilde Responsive Ayarlar */
+        @media (max-width: 480px) {
+            .title { font-size: 2.2rem; }
+            .subtitle { font-size: 1rem; }
+            .glass-card { padding: 30px 20px; }
+        }
+    </style>
 </head>
 <body>
-    <center>
 
-        <div class="hero">
+    <div class="hero-container">
+        <div class="glass-card">
             <h1 class="title">Mini Sınavım</h1>
-            <p id="changingText" class="subtitle"></p>
-        </div>
+            <p id="changingText" class="subtitle">Yükleniyor...</p>
 
-    </center>
-    
+            <div class="btn-group">
+                <a href="sets.php" class="btn btn-white">Setleri Keşfet</a>
+                <a href="create_set.php" class="btn btn-outline">Set Oluştur</a>
+            </div>
+        </div>
+    </div>
+
     <script>
         const texts = [
             "Kendi çalışma setlerini oluştur.",
@@ -32,20 +149,24 @@
         const textElement = document.getElementById("changingText");
 
         function changeText() {
+            // Önce yazıyı görünmez yap (fade out)
             textElement.style.opacity = 0;
 
             setTimeout(() => {
+                // Yazıyı değiştir
                 textElement.textContent = texts[index];
+                // Tekrar görünür yap (fade in)
                 textElement.style.opacity = 1;
+                // Sıradaki index'e geç
                 index = (index + 1) % texts.length;
-            }, 300);
+            }, 500); // CSS transition süresiyle (0.5s) uyumlu olması için 500ms bekletiyoruz
         }
 
+        // İlk açılışta hemen çalıştır
         changeText();
-        setInterval(changeText, 10000);
+        // Her 4 saniyede bir değiştir (Okunabilirlik için süreyi biraz azalttım, 10sn çok uzun olabilir)
+        setInterval(changeText, 4000);
     </script>
 
 </body>
-
-
 </html>
